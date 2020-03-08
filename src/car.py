@@ -36,7 +36,6 @@ class car():
         self.surface.fill((255, 255, 255))
 
     def handle_keys(self):
-        print(self.delta_pixels)
         """Do action based on pressed key."""
         key = pygame.key.get_pressed()
         turn_angle = max(1.5, (11 - self.delta_pixels)/2)
