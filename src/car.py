@@ -5,13 +5,14 @@ import numpy as np
 
 class car():
     def __init__(self, fps, x, y, width = 8, height = 16,
-                    car_color=(0, 0, 255), maximum_speed = 35):
+                    car_color=(0, 0, 255), front_color=(0, 0, 127)):
         self.frame_time = 1/fps
         self.width = width
         self.height = height
         self.x = x
         self.y = y
         self.car_color = car_color
+        self.front_color = front_color
 
         self.EPS = 1e-6
 
@@ -27,13 +28,22 @@ class car():
         # Acceleration in amount of pixels per iteration
         self.acc_pixels = 0.1
 
-        self.points = [(0, 0), (self.width, 0), (self.width, self.height), (0, self.height)]
-        self.points_vertical = [(0, 0), (self.width, 0), (self.width, self.height), (0, self.height)]
-        self.points_horizontal = [(0, 0), (self.height, 0), (self.height, self.width), (0, self.width)]
-        self.center = [self.height/2, self.width/2]
+        surface_side = 1.4*max(width, height)
+        self.center = [round(surface_side/2), round(surface_side/2)]
 
-        self.surface = pygame.Surface((100, 100))
-        self.surface.fill((255, 255, 255))
+        self.points_vertical = [(self.center[0] - self.width/2, self.center[1] - self.height/2),
+                                (self.center[0] + self.width/2, self.center[1] - self.height/2),
+                                (self.center[0] + self.width/2, self.center[1] + self.height/2),
+                                (self.center[0] - self.width/2, self.center[1] + self.height/2) ]
+        self.points_horizontal = [  (self.center[0] - self.height/2, self.center[1] - self.width/2),
+                                    (self.center[0] + self.height/2, self.center[1] - self.width/2),
+                                    (self.center[0] + self.height/2, self.center[1] + self.width/2),
+                                    (self.center[0] - self.height/2, self.center[1] + self.width/2) ]
+        self.points = self.points_vertical
+
+        self.surface = pygame.Surface((round(surface_side), round(surface_side)))
+        self.surface.set_colorkey((0, 255, 0))
+        self.surface.fill((0, 255, 0))
 
     def handle_keys(self):
         """Do action based on pressed key."""
@@ -70,7 +80,7 @@ class car():
 
     def draw(self):
         """Updates surface based on changes in the car shape."""
-        self.surface.fill((255, 255, 255))
+        self.surface.fill((0, 255, 0))
         pygame.draw.polygon(self.surface, self.car_color, self.points)
         return self.surface
 
@@ -106,10 +116,22 @@ class car():
             vector_unit = [1, 0]
         return vector + (vector_unit*scalar)
 
+    def get_pos_surface(self):
+        """Return position of the surface in the screen."""
+        return [round(self.x), round(self.y)]
 
     def get_pos(self):
-        """Return position of player as a tuple of ints."""
-        return (int(round(self.x)), int(round(self.y)))
+        """Return position of the center of the car as a np array."""
+        # return np.array([round(self.x), round(self.y)], dtype=np.int) + np.array(self.center, dtype=np.int)
+        return np.array(self.get_pos_surface()) + np.array(self.center)
+
+    def get_points(self):
+        """Returns position of each point of the car as a list of np array."""
+        ret = []
+        for pt in self.points:
+            ret.append(np.array([self.x, self.y]) + np.array(pt))
+
+        return ret
 
     def get_speed_squared(self):
         """Returns the speed of the car in meters per second squared."""

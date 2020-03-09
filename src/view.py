@@ -14,11 +14,11 @@ class view():
         """Write text in (x, y)"""
         fw, fh = font.size(text)
         surface = font.render(text, True, color)
-        self.screen.blit(surface, (x, y))        
+        self.blit(surface, (x, y))
 
     def blit(self, surface, pos):
         """Draw surface on screen."""
-        self.screen.blit(surface.convert(), pos)
+        self.screen.blit(surface, pos)
 
     def draw_player_data(self, player_data, pos):
         """Write input player_data to screen, starting on pos."""
