@@ -36,7 +36,7 @@ class controller():
             self.view.blit(player_surface, player.get_pos_surface())
 
             # Check for collision
-            collision = circuit.collision(player)
+            collision = circuit.collision_car(player)
 
             # Screen information
             text_pos_top_left = 0

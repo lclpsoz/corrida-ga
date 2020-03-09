@@ -20,14 +20,21 @@ class circuitSquared():
         
         [pygame.draw.polygon(self.surface, wall_color, wall) for wall in self.outside_walls]
 
-    def collision(self, player):
-        """Returns the type of collision of the car and the circuit. Can be
-        0, 1, 2, none, outside path and wall, respectively."""
-        if any([pol.intersects(Polygon(player.get_points())) for pol in self.pols_walls]):
+    def collision(self, shape):
+        """Returns the type of collision of the shapely shape and the circuit.
+        Can be 0, 1, 2, that means none, outside of the path and wall,
+        respectively."""
+        if any([pol.intersects(shape) for pol in self.pols_walls]):
             return 1
-        # elif any([pol.intersects(Polygon(player.get_points())) for pol in self.pols_slow_areas]):
+        # elif any([pol.intersects(shape) for pol in self.pols_slow_areas]):
         #   return 2
         return 0
+
+    def collision_car(self, player):
+        """Returns the type of collision of the car and the circuit. Can be
+        Can be 0, 1, 2, that means none, outside of the path and wall,
+        respectively."""
+        return self.collision(Polygon(player.get_points()))
 
     def get_surface(self):
         """Returns surface of the circuit."""
