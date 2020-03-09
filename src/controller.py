@@ -18,6 +18,7 @@ class controller():
         player_data['speed'] = str("%.2f" % player.get_speed()) + " m/s"
         player_data['dir'] = '(' + str("%.2f" % player.direction[0]) + ', ' + \
                                         str("%.2f" % player.direction[1]) + ')'
+        player_data['angle'] = str("%.2fº | %.2f rads" % (player.get_angle_degrees(), player.get_angle()))
         return player_data
         
     def run(self):

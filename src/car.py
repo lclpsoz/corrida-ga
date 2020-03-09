@@ -2,10 +2,12 @@ import pygame
 import time
 import math
 import numpy as np
+from shapely import affinity
+from shapely.geometry.polygon import Polygon
 
 class car():
     def __init__(self, fps, x, y, width = 8, height = 16,
-                    car_color=(0, 0, 255), front_color=(0, 0, 127)):
+                    car_color=(0, 0, 255), front_color=(0, 255, 255)):
         self.frame_time = 1/fps
         self.width = width
         self.height = height
@@ -31,15 +33,15 @@ class car():
         surface_side = 1.4*max(width, height)
         self.center = [round(surface_side/2), round(surface_side/2)]
 
-        self.points_vertical = [(self.center[0] - self.width/2, self.center[1] - self.height/2),
+
+        self.car_structure = [  (self.center[0] - self.width/2, self.center[1] - self.height/2),
                                 (self.center[0] + self.width/2, self.center[1] - self.height/2),
                                 (self.center[0] + self.width/2, self.center[1] + self.height/2),
                                 (self.center[0] - self.width/2, self.center[1] + self.height/2) ]
-        self.points_horizontal = [  (self.center[0] - self.height/2, self.center[1] - self.width/2),
-                                    (self.center[0] + self.height/2, self.center[1] - self.width/2),
-                                    (self.center[0] + self.height/2, self.center[1] + self.width/2),
-                                    (self.center[0] - self.height/2, self.center[1] + self.width/2) ]
-        self.points = self.points_vertical
+        self.car_front = [      (self.center[0] - self.width/2, self.center[1] + self.height/4),
+                                (self.center[0] + self.width/2, self.center[1] + self.height/4),
+                                (self.center[0] + self.width/2, self.center[1] + self.height/2),
+                                (self.center[0] - self.width/2, self.center[1] + self.height/2) ]
 
         self.surface = pygame.Surface((round(surface_side), round(surface_side)))
         self.surface.set_colorkey((0, 255, 0))
@@ -48,28 +50,26 @@ class car():
     def handle_keys(self):
         """Do action based on pressed key."""
         key = pygame.key.get_pressed()
-        turn_angle = max(1.5, (11 - self.delta_pixels)/2)
+        turn_angle_intensity = max(1.5, (11 - self.delta_pixels)/2)
+        turn_angle = 0
         if key[pygame.K_LEFT]:
             if(self.delta_pixels > self.EPS):
-                self.direction = self.rotate_degree((0, 0), self.direction, -turn_angle)
+                turn_angle += -turn_angle_intensity
                 # self.delta_pixels *= 1-self.friction_turn_loss_percentage
         if key[pygame.K_RIGHT]:
             if(self.delta_pixels > self.EPS):
-                self.direction = self.rotate_degree((0, 0), self.direction, turn_angle)
+                turn_angle += turn_angle_intensity
                 # self.delta_pixels *= 1-self.friction_turn_loss_percentage
         if key[pygame.K_UP]:
             self.delta_pixels += self.acc_pixels
 
+        # Apply turn
+        self.direction = self.rotate_point_degree((0, 0), self.direction, turn_angle)
+        self.update_car_angle(turn_angle)
+
         # Breaking
         if key[pygame.K_DOWN]:
             self.delta_pixels = max(0, self.delta_pixels-1.5*self.acc_pixels)
-
-        # Change car graphic by speed vector direction
-        if(self.delta_pixels > self.EPS):
-            if(abs(self.direction[0]) > abs(self.direction[1])):
-                self.points = self.points_horizontal
-            else:
-                self.points = self.points_vertical
 
         # Apply movement
         self.x += self.direction[0]*self.delta_pixels
@@ -78,21 +78,29 @@ class car():
         # Apply friction
         self.delta_pixels *= 1 - self.friction_movement
 
-    def draw(self):
-        """Updates surface based on changes in the car shape."""
-        self.surface.fill((0, 255, 0))
-        pygame.draw.polygon(self.surface, self.car_color, self.points)
-        return self.surface
+    def update_car_angle(self, angle):
+        """Updates car graphics by the angle parameter in degrees."""
+        points = self.car_structure
+        pol = affinity.rotate(Polygon(points), angle)
+        points_sep = pol.exterior.coords.xy
+        for i in range(len(points)):
+            points[i] = (points_sep[0][i], points_sep[1][i])
 
-    def rotate_degree(self, origin, point, angle):
+        points = self.car_front
+        pol = affinity.rotate(Polygon(points), angle, self.center)
+        points_sep = pol.exterior.coords.xy
+        for i in range(len(points)):
+            points[i] = (points_sep[0][i], points_sep[1][i])
+
+    def rotate_point_degree(self, origin, point, angle):
         """
         Rotate a point counterclockwise by a given angle around a given origin.
 
         The angle should be given in degrees.
         """
-        return self.rotate(origin, point, (angle*math.pi)/180)
+        return self.rotate_point(origin, point, (angle*math.pi)/180)
 
-    def rotate(self, origin, point, angle):
+    def rotate_point(self, origin, point, angle):
         """
         Rotate a point counterclockwise by a given angle around a given origin.
 
@@ -116,6 +124,13 @@ class car():
             vector_unit = [1, 0]
         return vector + (vector_unit*scalar)
 
+    def draw(self):
+        """Updates surface based on changes in the car shape."""
+        self.surface.fill((0, 255, 0))
+        pygame.draw.polygon(self.surface, self.car_color, self.car_structure)
+        pygame.draw.polygon(self.surface, self.front_color, self.car_front)
+        return self.surface
+
     def get_pos_surface(self):
         """Return position of the surface in the screen."""
         return [round(self.x), round(self.y)]
@@ -128,7 +143,7 @@ class car():
     def get_points(self):
         """Returns position of each point of the car as a list of np array."""
         ret = []
-        for pt in self.points:
+        for pt in self.car_structure:
             ret.append(np.array([self.x, self.y]) + np.array(pt))
 
         return ret
@@ -140,6 +155,17 @@ class car():
     def get_speed(self):
         """Returns the speed of the car in meters per second."""
         return math.sqrt(self.get_speed_squared())
+
+    def get_angle(self):
+        """Returns the angle of the speed vector of the car in radians."""
+        angle = math.atan2(self.direction[0], self.direction[1])
+        if(angle < 0):
+            angle = 2*math.pi+angle
+        return angle
+
+    def get_angle_degrees(self):
+        """Returns the angle of the speed vector of the car in degress."""
+        return self.get_angle()*180/math.pi 
 
     @staticmethod
     def get_controls():
