@@ -41,16 +41,15 @@ class CircuitCircle(Circuit):
         """Returns the type of collision of the shapely shape and the circuit.
         Can be NONE, SLOW_AREA or WALL."""
         points = self.get_points_shape(shape)
+        c = Circuit.COLLISION_NONE
         for p in points:
             d = math.hypot(self.center[0] - p[0], self.center[1] - p[1])
             if d <= self.inner_circle or d >= self.outter_circle - 2:
-                return Circuit.COLLISION_WALL
+                c = max(c, Circuit.COLLISION_WALL)
             if(d <= self.inner_circle + self.gray or
                 d >= self.outter_circle - self.gray):
-                return Circuit.COLLISION_SLOW_AREA
-        return Circuit.COLLISION_NONE
-        
-        pass
+                c = max(c, Circuit.COLLISION_SLOW_AREA)
+        return c
         
     def add_player(self, player):
         """Adds a car in the circuit """
