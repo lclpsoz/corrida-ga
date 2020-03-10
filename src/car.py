@@ -54,7 +54,7 @@ class Car():
         pass
 
 
-    def handle_keys(self):
+    def handle_keys(self, friction_multiplier = 1):
         """Do action based on pressed key."""
         key = pygame.key.get_pressed()
         turn_angle_intensity = max(1.5, (11 - self.delta_pixels)/2)
@@ -83,7 +83,7 @@ class Car():
         self.y += self.direction[1]*self.delta_pixels
 
         # Apply friction
-        self.delta_pixels *= 1 - self.friction_movement
+        self.delta_pixels *= 1 - friction_multiplier * self.friction_movement
 
     def update_car_angle(self, angle):
         """Updates car graphics by the angle parameter in degrees."""

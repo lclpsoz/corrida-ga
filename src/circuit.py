@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from shapely.geometry.polygon import Polygon
+import time
 
 class Circuit(metaclass=ABCMeta):
     COLLISION_NONE = 0
@@ -7,8 +8,19 @@ class Circuit(metaclass=ABCMeta):
     COLLISION_WALL = 2
     @abstractmethod
     def __init__(self):
+        self.start_time = []
         pass
 
+    @abstractmethod
+    def add_car(self, player):
+        """Adds a car in the circuit, must return an id"""
+        pass
+        
+    @abstractmethod
+    def finished(self, player_id):
+        """True if the car finished the circuit, False otherwise"""
+        pass
+    
     @abstractmethod
     def collision(self, shape):
         """Returns the type of collision of the shapely shape and the circuit.
@@ -19,6 +31,10 @@ class Circuit(metaclass=ABCMeta):
     def draw(self):
         """Returns the pygame.Surface with the track drawed."""
         pass
+    
+    def get_current_time(self, player_id):
+        """Returns current time of a car"""
+        return time.time() - self.start_time[player_id]
 
     def collision_car(self, player):
         """Returns the type of collision of the car and the circuit. Can be

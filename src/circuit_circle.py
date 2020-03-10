@@ -3,6 +3,7 @@ import math
 import numpy as np
 from circuit import Circuit
 from shapely.geometry.polygon import Polygon
+import time
 
 class CircuitCircle(Circuit):
     def __init__(self, center):
@@ -18,7 +19,9 @@ class CircuitCircle(Circuit):
                                     center[1]])
         self.sectors = []
         self.current_sector = []
-
+        self.start_time = []
+        self.slow_friction_multiplier = 20
+    
     def draw(self):
         """Returns the pygame.Surface with the track drawed"""
         self.surface.set_colorkey((0, 255, 0))
@@ -51,12 +54,13 @@ class CircuitCircle(Circuit):
                 c = max(c, Circuit.COLLISION_SLOW_AREA)
         return c
         
-    def add_player(self, player):
+    def add_car(self, player):
         """Adds a car in the circuit """
         id = len(self.sectors)
         self.sectors.append([0 for i in range(36)])
         self.sectors[id][0] = 1
         self.current_sector.append(0)
+        self.start_time.append(time.time())
         return id
 
     def cur_sector(self, point):
@@ -73,7 +77,7 @@ class CircuitCircle(Circuit):
         now = -1
         for p in player.get_points():
             now = max(now, self.cur_sector(p))
-      
+
         if ((self.current_sector[player_id] + 1) % 36 == now) and\
                 (self.sectors[player_id][self.current_sector[player_id]] == 1):
             self.sectors[player_id][now] = 1
@@ -81,9 +85,9 @@ class CircuitCircle(Circuit):
         self.current_sector[player_id] = now
 
     def finished(self, player_id):
-        """True if the car finished the circuit"""
-        # print(self.sectors[player_id])
+        """True if the car finished the circuit, False otherwise"""
         for i in range(36):
             if self.sectors[player_id][i] == 0:
                 return False
+       
         return self.current_sector[player_id] == 0

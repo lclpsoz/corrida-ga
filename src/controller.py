@@ -6,7 +6,6 @@ from circuit_squared import CircuitSquared
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 import numpy as np
-import time
 from datetime import datetime
 
 class Controller():
@@ -33,42 +32,51 @@ class Controller():
         player = Car(self.config['fps'], track.start[0], track.start[1])
         car_controls = Car.get_controls()
 
-        player_id = track.add_player(player)
+        player_id = track.add_car(player)
 
         # here or in the car class?
-        start_time = time.time()
-
+        
         running = True
         while running:
             self.view.blit(circuit_surface, [0, 0])
-            player.handle_keys()
+            
+            # Check for collision
+            collision = track.collision_car(player)
+
+            if(collision == CircuitCircle.COLLISION_WALL):
+                time_elapsed = datetime.fromtimestamp(track.get_current_time(player_id))
+                str_time = time_elapsed.strftime("%M:%S:%f")
+                print("Bateu! " + str_time)
+                self.view.draw_text(self.config['width'] // 2 - 200, self.config['height'] // 2, "Crashed!", pygame.font.SysFont('mono', 50, bold=True), (0, 255, 0))
+                self.view.draw_text(self.config['width'] // 2 - 250, self.config['height'] // 2 + 50, "Time: " + str_time, pygame.font.SysFont('mono', 40, bold=True), (120, 255, 0))
+                running = False
+            elif(collision == CircuitCircle.COLLISION_SLOW_AREA):
+                player.handle_keys(track.slow_friction_multiplier)
+                self.view.draw_text(0, 180, "Driving on slow area!", pygame.font.SysFont('mono', 20, bold=True), (255, 0, 0))
+            else:
+                player.handle_keys()
+            
+
             player_surface = player.draw()
+            track.update_sector(player_id, player)
             self.view.blit(player_surface, player.get_pos_surface())
             
-            track.update_sector(player_id, player)
+            # Screen information
+            text_pos_top_left = 0
+            self.view.draw_text(0, 200, "Sector: " + str(track.current_sector[player_id]), pygame.font.SysFont('mono', 20, bold=True), (255, 0, 0))
+            self.view.draw_car_controls(player.get_controls(), [0, 0])
+            self.view.draw_player_data(self.get_player_data_str(player), [0, 60])
+            
             
             # tantantan tantantan
             if track.finished(player_id):
-                time_elapsed = datetime.fromtimestamp(time.time() - start_time)
+                time_elapsed = datetime.fromtimestamp(track.get_current_time(player_id))
                 str_time = time_elapsed.strftime("%M:%S:%f")
                 print("GG! " + str_time)
                 self.view.draw_text(self.config['width'] // 2 - 200, self.config['height'] // 2, "CABOU CARAI", pygame.font.SysFont('mono', 50, bold=True), (0, 255, 0))
                 self.view.draw_text(self.config['width'] // 2 - 250, self.config['height'] // 2 + 50, "Time: " + str_time, pygame.font.SysFont('mono', 40, bold=True), (120, 255, 0))
                 running = False
 
-            # Check for collision
-            collision = track.collision_car(player)
-
-            # Screen information
-            text_pos_top_left = 0
-            self.view.draw_text(0, 200, "Sector: " + str(track.current_sector[player_id]), pygame.font.SysFont('mono', 20, bold=True), (255, 0, 0))
-            self.view.draw_car_controls(player.get_controls(), [0, 0])
-            self.view.draw_player_data(self.get_player_data_str(player), [0, 60])
-            if(collision == CircuitCircle.COLLISION_WALL):
-                self.view.draw_text(0, 180, "Colliding with wall!", pygame.font.SysFont('mono', 20, bold=True), (255, 0, 0))
-            elif(collision == CircuitCircle.COLLISION_SLOW_AREA):
-                self.view.draw_text(0, 180, "Driving on slow area!", pygame.font.SysFont('mono', 20, bold=True), (255, 0, 0))
-            
             self.view.update()
 
             # Events
