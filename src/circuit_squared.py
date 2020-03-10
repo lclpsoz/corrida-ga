@@ -25,9 +25,9 @@ class CircuitSquared(Circuit):
         """Returns the type of collision of the shapely shape and the circuit.
         Can be NONE, SLOW_AREA or WALL."""
         if any([pol.intersects(shape) for pol in self.pols_walls]):
-            return Circuit.COLLISION_SLOW_AREA
+            return Circuit.COLLISION_WALL
         # elif any([pol.intersects(shape) for pol in self.pols_slow_areas]):
-        #   return COLLISION_WALL
+        #   return COLLISION_SLOW_AREA
         return Circuit.COLLISION_NONE
 
     def get_surface(self):

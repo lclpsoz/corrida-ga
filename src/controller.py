@@ -64,10 +64,10 @@ class Controller():
             self.view.draw_text(0, 200, "Sector: " + str(track.current_sector[player_id]), pygame.font.SysFont('mono', 20, bold=True), (255, 0, 0))
             self.view.draw_car_controls(player.get_controls(), [0, 0])
             self.view.draw_player_data(self.get_player_data_str(player), [0, 60])
-            if(collision == 1):
+            if(collision == CircuitCircle.COLLISION_WALL):
                 self.view.draw_text(0, 180, "Colliding with wall!", pygame.font.SysFont('mono', 20, bold=True), (255, 0, 0))
-            elif(collision == 2):
-                self.view.draw_text(0, 180, "Colliding with gray!", pygame.font.SysFont('mono', 20, bold=True), (255, 0, 0))
+            elif(collision == CircuitCircle.COLLISION_SLOW_AREA):
+                self.view.draw_text(0, 180, "Driving on slow area!", pygame.font.SysFont('mono', 20, bold=True), (255, 0, 0))
             
             self.view.update()
 
