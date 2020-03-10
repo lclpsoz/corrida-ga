@@ -1,17 +1,17 @@
 import pygame
-from car import car
-from view import view
-from circuit import circuit
-from circuit_squared import circuitSquared
+from car import Car
+from view import View
+from circuit_circle import CircuitCircle
+from circuit_squared import CircuitSquared
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 import numpy as np
 import time
 from datetime import datetime
 
-class controller():
+class Controller():
     def __init__(self, config):
-        self.view = view(config)
+        self.view = View(config)
         self.config = config
 
     def get_player_data_str(self, player):
@@ -27,11 +27,11 @@ class controller():
     def run(self):
         """Run game."""
 
-        track = circuit([self.config['width'] // 2, self.config['height'] // 2])
+        track = CircuitCircle([self.config['width'] // 2, self.config['height'] // 2])
         circuit_surface = track.draw()
 
-        player = car(self.config['fps'], track.start[0], track.start[1])
-        car_controls = car.get_controls()
+        player = Car(self.config['fps'], track.start[0], track.start[1])
+        car_controls = Car.get_controls()
 
         player_id = track.add_player(player)
 

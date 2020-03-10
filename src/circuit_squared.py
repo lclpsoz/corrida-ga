@@ -1,11 +1,12 @@
 import pygame
-from car import car
-from view import view
+from car import Car
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 import numpy as np
+from circuit import Circuit
 
-class circuitSquared():
+class CircuitSquared(Circuit):
+    """Dummy Circuit for tests."""
     def __init__(self, wall_color = (0, 0, 0)):
         offset = np.asarray([400, 100])
         self.surface = pygame.Surface((round(1200), round(600)))
@@ -22,19 +23,12 @@ class circuitSquared():
 
     def collision(self, shape):
         """Returns the type of collision of the shapely shape and the circuit.
-        Can be 0, 1, 2, that means none, outside of the path and wall,
-        respectively."""
+        Can be NONE, SLOW_AREA or WALL."""
         if any([pol.intersects(shape) for pol in self.pols_walls]):
-            return 1
+            return Circuit.COLLISION_SLOW_AREA
         # elif any([pol.intersects(shape) for pol in self.pols_slow_areas]):
-        #   return 2
-        return 0
-
-    def collision_car(self, player):
-        """Returns the type of collision of the car and the circuit. Can be
-        Can be 0, 1, 2, that means none, outside of the path and wall,
-        respectively."""
-        return self.collision(Polygon(player.get_points()))
+        #   return COLLISION_WALL
+        return Circuit.COLLISION_NONE
 
     def get_surface(self):
         """Returns surface of the circuit."""

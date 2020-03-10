@@ -5,7 +5,7 @@ import numpy as np
 from shapely import affinity
 from shapely.geometry.polygon import Polygon
 
-class car():
+class Car():
     def __init__(self, fps, x, y, width = 8, height = 16,
                     car_color=(0, 0, 255), front_color=(0, 255, 255)):
         self.frame_time = 1/fps
@@ -43,9 +43,16 @@ class car():
                                 (self.center[0] + self.width/2, self.center[1] + self.height/2),
                                 (self.center[0] - self.width/2, self.center[1] + self.height/2) ]
 
+        self.car_structure_orientations = self.generate_orientations(self.car_structure, 360)
+        self.car_front_orientations = self.generate_orientations(self.car_front, 360)
+
         self.surface = pygame.Surface((round(surface_side), round(surface_side)))
         self.surface.set_colorkey((0, 255, 0))
         self.surface.fill((0, 255, 0))
+
+    def generate_orientations(self, base, amount):
+        pass
+
 
     def handle_keys(self):
         """Do action based on pressed key."""

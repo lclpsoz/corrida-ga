@@ -1,7 +1,7 @@
 import pygame
-from car import car
+from car import Car
 
-class view():
+class View():
     def __init__(self, config):
         self.width = config['width']
         self.height = config['height']
