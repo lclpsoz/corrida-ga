@@ -10,6 +10,7 @@ class View():
                         pygame.DOUBLEBUF)
         self.font = pygame.font.SysFont('mono', 20, bold=True)
         self.screen.fill((255, 255, 255))
+        self.clock = pygame.time.Clock()
 
     def draw_text(self, x, y, text, font, color = (255, 0, 255)):
         """Write text in (x, y)"""
@@ -38,7 +39,8 @@ class View():
 
     def update(self):
         """Updates frame."""
-        clock = pygame.time.Clock()
+        self.clock.tick(self.fps)
+        self.draw_text(self.width-150, 0, "FPS: %4.2f" % (
+                        self.clock.get_fps()), self.font)
         pygame.display.update()
-        clock.tick(self.fps)
         self.screen.fill((255, 255, 255))            
