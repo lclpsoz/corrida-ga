@@ -2,6 +2,7 @@ import pygame
 from car import Car
 from view import View
 from circuit_circle import CircuitCircle
+from circuit_ellipse import CircuitEllipse
 from circuit_squared import CircuitSquared
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
@@ -26,15 +27,14 @@ class Controller():
     def run(self):
         """Run game."""
 
-        track = CircuitCircle([self.config['width'] // 2, self.config['height'] // 2])
+        track = CircuitEllipse([self.config['width'] // 2, self.config['height'] // 2], [150, 80], [250, 170], 20, 2, 20, self.config['width'], self.config['height'])
+        # track = CircuitCircle([self.config['width'] // 2, self.config['height'] // 2], 150, 250, 20, 2, 20, self.config['width'], self.config['height'])
         circuit_surface = track.draw()
 
         player = Car(self.config['fps'], track.start[0], track.start[1])
         car_controls = Car.get_controls()
 
         player_id = track.add_car(player)
-
-        # here or in the car class?
         
         running = True
         while running:

@@ -4,18 +4,18 @@ import numpy as np
 from circuit import Circuit
 import time
 
-class CircuitCircle(Circuit):
-    def __init__(self, center, inner_circle, outter_circle, gray, wall, slow_multiplier, width, height):
+class CircuitEllipse(Circuit):
+    def __init__(self, center, inner, outter, gray, wall, slow_multiplier, width, height):
         self.center = np.asarray(center)
-        self.inner_circle = inner_circle
-        self.outter_circle = outter_circle
+        self.inner = inner
+        self.outter = outter
         self.gray = gray
         self.wall = wall
         self.color1 = (0,0,0)
         self.color2 = (255,255,255)
         self.color3 = (220,220,220)
         self.surface = pygame.Surface((width, height))
-        self.start = np.asarray([center[0] - (self.outter_circle + self.inner_circle) // 2,
+        self.start = np.asarray([center[0] - (self.outter[0] + self.inner[0]) // 2,
                                     center[1]])
         self.sectors = []
         self.current_sector = []
@@ -26,18 +26,24 @@ class CircuitCircle(Circuit):
         """Returns the pygame.Surface with the track drawed"""
         self.surface.set_colorkey((0, 255, 0))
         self.surface.fill((0,255,0))
-        pygame.draw.circle(self.surface, self.color1, self.center,
-                            self.outter_circle)    
-        pygame.draw.circle(self.surface, self.color3, self.center,
-                            self.outter_circle - self.wall)
-        pygame.draw.circle(self.surface, self.color2, self.center,
-                            self.outter_circle - self.gray - self.wall)    
-        pygame.draw.circle(self.surface, self.color3, self.center,
-                            self.inner_circle + self.gray)    
-        pygame.draw.circle(self.surface, self.color1, self.center,
-                            self.inner_circle)    
-        pygame.draw.circle(self.surface, self.color2, self.center,
-                            self.inner_circle - self.wall)    
+        pygame.draw.ellipse(self.surface, self.color1, 
+                            (self.center[0] - self.outter[0], self.center[1] - self.outter[1],
+                            2 * self.outter[0], 2 * self.outter[1]))    
+        pygame.draw.ellipse(self.surface, self.color3,
+                            (self.center[0] - self.outter[0] + self.wall, self.center[1] - self.outter[1] + self.wall, 
+                            2 * (self.outter[0] - self.wall), 2 * (self.outter[1] - self.wall)))
+        pygame.draw.ellipse(self.surface, self.color2,
+                            (self.center[0] - self.outter[0] + self.gray + self.wall, self.center[1] - self.outter[1] + self.gray + self.wall, 
+                            2 * (self.outter[0] - self.gray - self.wall), 2 * (self.outter[1] - self.gray - self.wall)))
+        pygame.draw.ellipse(self.surface, self.color3,
+                            (self.center[0] - self.inner[0] - self.gray, self.center[1] - self.inner[1] - self.gray,
+                            2 * (self.inner[0] + self.gray), 2 * (self.inner[1] + self.gray)))
+        pygame.draw.ellipse(self.surface, self.color1,
+                            (self.center[0] - self.inner[0], self.center[1] - self.inner[1],
+                            2 * self.inner[0], 2 * self.inner[1]))
+        pygame.draw.ellipse(self.surface, self.color2,
+                            (self.center[0] - self.inner[0] + self.wall, self.center[1] - self.inner[1] + self.wall,
+                            2 * (self.inner[0] - self.wall), 2 * (self.inner[1] - self.wall)))
         return self.surface
 
     def collision(self, shape):
@@ -47,10 +53,15 @@ class CircuitCircle(Circuit):
         c = Circuit.COLLISION_NONE
         for p in points:
             d = math.hypot(self.center[0] - p[0], self.center[1] - p[1])
-            if d <= self.inner_circle or d >= self.outter_circle - self.wall:
+            theta = math.atan2(-(p[1] - self.center[1]), p[0] - self.center[0])
+            r1 = self.outter[0] * self.outter[1] / math.sqrt(self.outter[0] * self.outter[0] * math.sin(theta) * math.sin(theta) + 
+                                self.outter[1] * self.outter[1] * math.cos(theta) * math.cos(theta))
+            r2 = self.inner[0] * self.inner[1] / math.sqrt(self.inner[0] * self.inner[0] * math.sin(theta) * math.sin(theta) + 
+                                self.inner[1] * self.inner[1] * math.cos(theta) * math.cos(theta))
+            if d >= r1 - self.wall or d <= r2:
                 return Circuit.COLLISION_WALL
-            elif(d <= self.inner_circle + self.gray or
-                d >= self.outter_circle - self.gray):
+            elif(d <= r2 + self.gray or
+                d >= r1 - self.gray):
                 c = Circuit.COLLISION_SLOW_AREA
         return c
         
