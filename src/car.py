@@ -3,11 +3,19 @@ import time
 import math
 import numpy as np
 from shapely import affinity
+from shapely.geometry import LineString
 from shapely.geometry.polygon import Polygon
+from circuit import Circuit
 
 class Car():
-    def __init__(self, fps, x, y, width = 8, height = 16,
-                    car_color=(0, 0, 255), front_color=(0, 255, 255)):
+    def __init__(self, fps, x, y, start_angle=90, number_of_visions=18,
+                    vision_length = 64, car_vision_colors=[(0, 254,0), (255, 0, 0)],
+                    width = 8, height = 16, car_color=(0, 0, 255),
+                    front_color=(0, 255, 255)):
+        """Receives information about the car. start_angle is relative to East and is
+        anti-clockwise."""
+        if number_of_visions < 3:
+            exit(0)
         self.frame_time = 1/fps
         self.width = width
         self.height = height
@@ -22,17 +30,19 @@ class Car():
         self.pixels_per_meter = width
 
         self.friction_movement = 0.005
+        self.friction_multiplier = 1
         # self.friction_turn_loss_percentage = 0.000
         # Direction is stored as a unit vector
-        self.direction = np.asarray([0, 1])
+        self.direction = np.asarray([1, 0])
         # Delta per iteration in amount of pixels
         self.delta_pixels = 0  
         # Acceleration in amount of pixels per iteration
         self.acc_pixels = 0.1
 
-        surface_side = 1.4*max(width, height)
+        surface_side = 1.4*max(max(width, height), 2*vision_length)
         self.center = [round(surface_side/2), round(surface_side/2)]
-
+        self.x -= self.center[0]
+        self.y -= self.center[1]
 
         self.car_structure = [  (self.center[0] - self.width/2, self.center[1] - self.height/2),
                                 (self.center[0] + self.width/2, self.center[1] - self.height/2),
@@ -42,6 +52,20 @@ class Car():
                                 (self.center[0] + self.width/2, self.center[1] + self.height/4),
                                 (self.center[0] + self.width/2, self.center[1] + self.height/2),
                                 (self.center[0] - self.width/2, self.center[1] + self.height/2) ]
+        self.car_seg_vision = []
+        self.vision_angles = np.linspace(-90, 90, number_of_visions)
+        self.vision = [False for x in range(vision_length)] # False, no collision
+        self.car_vision_colors = car_vision_colors
+        car_seg_vision_base = [self.center[0], self.center[1] + vision_length]
+        for angle_vision in self.vision_angles:
+            self.car_seg_vision.append(self.rotate_point_degree(self.center, car_seg_vision_base, -angle_vision))
+
+        # base_vision = 
+
+        # -90 makes car orientation to East, update_car_angle is clockwise,
+        # -start_angle because start_angle is anti-clockwise.
+        self.update_car_angle(-90 + -start_angle)
+        self.direction = self.rotate_point_degree((0, 0), self.direction, -start_angle)
 
         self.car_structure_orientations = self.generate_orientations(self.car_structure, 360)
         self.car_front_orientations = self.generate_orientations(self.car_front, 360)
@@ -53,8 +77,7 @@ class Car():
     def generate_orientations(self, base, amount):
         pass
 
-
-    def handle_keys(self, friction_multiplier = 1):
+    def handle_keys(self):
         """Do action based on pressed key."""
         key = pygame.key.get_pressed()
         turn_angle_intensity = max(1.5, (11 - self.delta_pixels)/2)
@@ -83,25 +106,32 @@ class Car():
         self.y += self.direction[1]*self.delta_pixels
 
         # Apply friction
-        self.delta_pixels *= 1 - friction_multiplier * self.friction_movement
+        self.delta_pixels *= 1 - self.friction_multiplier * self.friction_movement
 
     def update_car_angle(self, angle):
-        """Updates car graphics by the angle parameter in degrees."""
+        """Updates car graphics by the angle parameter in degrees. Rotates
+        clockwise"""
+        # Car structure
         points = self.car_structure
         pol = affinity.rotate(Polygon(points), angle)
         points_sep = pol.exterior.coords.xy
         for i in range(len(points)):
             points[i] = (points_sep[0][i], points_sep[1][i])
 
+        # Car front
         points = self.car_front
         pol = affinity.rotate(Polygon(points), angle, self.center)
         points_sep = pol.exterior.coords.xy
         for i in range(len(points)):
             points[i] = (points_sep[0][i], points_sep[1][i])
 
+        # Vision
+        for i in range(len(self.car_seg_vision)):
+            self.car_seg_vision[i] = self.rotate_point_degree(self.center, self.car_seg_vision[i], angle)
+
     def rotate_point_degree(self, origin, point, angle):
         """
-        Rotate a point counterclockwise by a given angle around a given origin.
+        Rotate a point clockwise by a given angle around a given origin.
 
         The angle should be given in degrees.
         """
@@ -109,7 +139,7 @@ class Car():
 
     def rotate_point(self, origin, point, angle):
         """
-        Rotate a point counterclockwise by a given angle around a given origin.
+        Rotate a point clockwise by a given angle around a given origin.
 
         The angle should be given in radians.
         """
@@ -131,12 +161,26 @@ class Car():
             vector_unit = [1, 0]
         return vector + (vector_unit*scalar)
 
+    def update_vision(self, track):
+        """Updates list vision, checking for collision with each vision
+        segment."""
+        for i in range(len(self.car_seg_vision)):
+            line = LineString([np.array(self.center) + np.array([self.x, self.y]),
+                                np.array(self.car_seg_vision[i]) + np.array([self.x, self.y])])
+            self.vision[i] = track.collision(line) == Circuit.COLLISION_WALL
+
     def draw(self):
         """Updates surface based on changes in the car shape."""
         self.surface.fill((0, 255, 0))
         pygame.draw.polygon(self.surface, self.car_color, self.car_structure)
         pygame.draw.polygon(self.surface, self.front_color, self.car_front)
+        for i in range(len(self.car_seg_vision)):
+            pygame.draw.line(self.surface, self.car_vision_colors[self.vision[i]],
+                self.center, self.car_seg_vision[i])
         return self.surface
+
+    def set_friction_multiplier(self, friction_multiplier):
+        self.friction_multiplier = friction_multiplier
 
     def get_pos_surface(self):
         """Return position of the surface in the screen."""
@@ -168,6 +212,9 @@ class Car():
         angle = math.atan2(self.direction[0], self.direction[1])
         if(angle < 0):
             angle = 2*math.pi+angle
+        angle = angle - math.pi/2
+        if(angle < 0):
+            angle += 2*math.pi
         return angle
 
     def get_angle_degrees(self):
