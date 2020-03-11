@@ -32,6 +32,11 @@ class Circuit(metaclass=ABCMeta):
         """Returns the pygame.Surface with the track drawed."""
         pass
     
+    @abstractmethod
+    def reset(self, player_id):
+        """Reset car"""
+        pass
+
     def get_current_time(self, player_id):
         """Returns current time of a car"""
         return time.time() - self.start_time[player_id]

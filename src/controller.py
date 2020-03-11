@@ -8,6 +8,7 @@ from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 import numpy as np
 from datetime import datetime
+import time
 
 class Controller():
     def __init__(self, config):
@@ -24,14 +25,19 @@ class Controller():
         player_data['angle'] = str("%.2fº | %.2f rads" % (player.get_angle_degrees(), player.get_angle()))
         return player_data
         
+
+    def reset(self, player, player_id, track):
+        player.reset()
+        track.reset(player_id)
+
     def run(self):
         """Run game."""
 
-        track = CircuitEllipse([self.config['width'] // 2, self.config['height'] // 2], [150, 80], [250, 170], 20, 2, 20, self.config['width'], self.config['height'])
-        # track = CircuitCircle([self.config['width'] // 2, self.config['height'] // 2], 150, 250, 20, 2, 20, self.config['width'], self.config['height'])
+        track = CircuitEllipse([self.config['width'] // 2, self.config['height'] // 2], [150, 80], [250, 170], 20, 2, 20, 90, self.config['width'], self.config['height'])
+        # track = CircuitCircle([self.config['width'] // 2, self.config['height'] // 2], 150, 250, 20, 2, 20, 90, self.config['width'], self.config['height'])
         circuit_surface = track.draw()
 
-        player = Car(self.config['fps'], track.start[0], track.start[1])
+        player = Car(self.config['fps'], track.start[0], track.start[1], track.start_angle)
         car_controls = Car.get_controls()
 
         player_id = track.add_car(player)
@@ -50,6 +56,8 @@ class Controller():
                 print("Bateu! " + str_time)
                 self.view.draw_text(self.config['width'] // 2 - 200, self.config['height'] // 2, "Crashed!", pygame.font.SysFont('mono', 50, bold=True), (0, 255, 0))
                 self.view.draw_text(self.config['width'] // 2 - 250, self.config['height'] // 2 + 50, "Time: " + str_time, pygame.font.SysFont('mono', 40, bold=True), (120, 255, 0))
+                # time.sleep(2)
+                # self.reset(player, player_id, track)
                 running = False
             elif(collision == CircuitCircle.COLLISION_SLOW_AREA):
                 player.set_friction_multiplier(track.slow_friction_multiplier)

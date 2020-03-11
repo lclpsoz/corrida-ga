@@ -5,7 +5,7 @@ from circuit import Circuit
 import time
 
 class CircuitEllipse(Circuit):
-    def __init__(self, center, inner, outter, gray, wall, slow_multiplier, width, height):
+    def __init__(self, center, inner, outter, gray, wall, slow_multiplier, start_angle, width, height):
         self.center = np.asarray(center)
         self.inner = inner
         self.outter = outter
@@ -17,6 +17,7 @@ class CircuitEllipse(Circuit):
         self.surface = pygame.Surface((width, height))
         self.start = np.asarray([center[0] - (self.outter[0] + self.inner[0]) // 2,
                                     center[1]])
+        self.start_angle = start_angle
         self.sectors = []
         self.current_sector = []
         self.start_time = []
@@ -45,6 +46,12 @@ class CircuitEllipse(Circuit):
                             (self.center[0] - self.inner[0] + self.wall, self.center[1] - self.inner[1] + self.wall,
                             2 * (self.inner[0] - self.wall), 2 * (self.inner[1] - self.wall)))
         return self.surface
+
+    def reset(self, player_id):
+        self.sectors[player_id] = [0 for i in range(36)]
+        self.sectors[player_id][0] = 1
+        self.current_sector[player_id] = 0
+        self.start_time[player_id] = time.time()
 
     def collision(self, shape):
         """Returns the type of collision of the shapely shape and the circuit.

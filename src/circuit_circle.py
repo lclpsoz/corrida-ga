@@ -5,7 +5,7 @@ from circuit import Circuit
 import time
 
 class CircuitCircle(Circuit):
-    def __init__(self, center, inner_circle, outter_circle, gray, wall, slow_multiplier, width, height):
+    def __init__(self, center, inner_circle, outter_circle, gray, wall, slow_multiplier, start_angle, width, height):
         self.center = np.asarray(center)
         self.inner_circle = inner_circle
         self.outter_circle = outter_circle
@@ -17,6 +17,7 @@ class CircuitCircle(Circuit):
         self.surface = pygame.Surface((width, height))
         self.start = np.asarray([center[0] - (self.outter_circle + self.inner_circle) // 2,
                                     center[1]])
+        self.start_angle = start_angle
         self.sectors = []
         self.current_sector = []
         self.start_time = []
@@ -39,6 +40,12 @@ class CircuitCircle(Circuit):
         pygame.draw.circle(self.surface, self.color2, self.center,
                             self.inner_circle - self.wall)    
         return self.surface
+
+    def reset(self, player_id):
+        self.sectors[player_id] = [0 for i in range(36)]
+        self.sectors[player_id][0] = 1
+        self.current_sector[player_id] = 0
+        self.start_time[player_id] = time.time()
 
     def collision(self, shape):
         """Returns the type of collision of the shapely shape and the circuit.
