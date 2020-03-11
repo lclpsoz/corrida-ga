@@ -42,6 +42,7 @@ class Controller():
             
             # Check for collision
             collision = track.collision_car(player)
+            player.update_vision(track)
 
             if(collision == CircuitCircle.COLLISION_WALL):
                 time_elapsed = datetime.fromtimestamp(track.get_current_time(player_id))
@@ -51,9 +52,11 @@ class Controller():
                 self.view.draw_text(self.config['width'] // 2 - 250, self.config['height'] // 2 + 50, "Time: " + str_time, pygame.font.SysFont('mono', 40, bold=True), (120, 255, 0))
                 running = False
             elif(collision == CircuitCircle.COLLISION_SLOW_AREA):
-                player.handle_keys(track.slow_friction_multiplier)
+                player.set_friction_multiplier(track.slow_friction_multiplier)
+                player.handle_keys()
                 self.view.draw_text(0, 180, "Driving on slow area!", pygame.font.SysFont('mono', 20, bold=True), (255, 0, 0))
             else:
+                player.set_friction_multiplier(1)
                 player.handle_keys()
             
 
