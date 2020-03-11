@@ -5,23 +5,23 @@ from circuit import Circuit
 import time
 
 class CircuitEllipse(Circuit):
-    def __init__(self, center, inner, outter, gray, wall, slow_multiplier, start_angle, width, height):
-        self.center = np.asarray(center)
-        self.inner = inner
-        self.outter = outter
-        self.gray = gray
-        self.wall = wall
+    def __init__(self, config):
+        self.center = np.asarray(config['center'])
+        self.inner = config['inner']
+        self.outter = config['outter']
+        self.slow_area = config['slow_area']
+        self.wall = config['wall']
         self.color1 = (0,0,0)
         self.color2 = (255,255,255)
         self.color3 = (220,220,220)
-        self.surface = pygame.Surface((width, height))
-        self.start = np.asarray([center[0] - (self.outter[0] + self.inner[0]) // 2,
-                                    center[1]])
-        self.start_angle = start_angle
+        self.surface = pygame.Surface((config['width'], config['height']))
+        self.start = np.asarray([self.center[0] - (self.outter[0] + self.inner[0]) // 2,
+                                    self.center[1]])
+        self.start_angle = config['start_angle']
         self.sectors = []
         self.current_sector = []
         self.start_time = []
-        self.slow_friction_multiplier = slow_multiplier
+        self.slow_friction_multiplier = config['slow_multiplier']
     
     def draw(self):
         """Returns the pygame.Surface with the track drawed"""
@@ -34,11 +34,11 @@ class CircuitEllipse(Circuit):
                             (self.center[0] - self.outter[0] + self.wall, self.center[1] - self.outter[1] + self.wall, 
                             2 * (self.outter[0] - self.wall), 2 * (self.outter[1] - self.wall)))
         pygame.draw.ellipse(self.surface, self.color2,
-                            (self.center[0] - self.outter[0] + self.gray + self.wall, self.center[1] - self.outter[1] + self.gray + self.wall, 
-                            2 * (self.outter[0] - self.gray - self.wall), 2 * (self.outter[1] - self.gray - self.wall)))
+                            (self.center[0] - self.outter[0] + self.slow_area + self.wall, self.center[1] - self.outter[1] + self.slow_area + self.wall, 
+                            2 * (self.outter[0] - self.slow_area - self.wall), 2 * (self.outter[1] - self.slow_area - self.wall)))
         pygame.draw.ellipse(self.surface, self.color3,
-                            (self.center[0] - self.inner[0] - self.gray, self.center[1] - self.inner[1] - self.gray,
-                            2 * (self.inner[0] + self.gray), 2 * (self.inner[1] + self.gray)))
+                            (self.center[0] - self.inner[0] - self.slow_area, self.center[1] - self.inner[1] - self.slow_area,
+                            2 * (self.inner[0] + self.slow_area), 2 * (self.inner[1] + self.slow_area)))
         pygame.draw.ellipse(self.surface, self.color1,
                             (self.center[0] - self.inner[0], self.center[1] - self.inner[1],
                             2 * self.inner[0], 2 * self.inner[1]))
@@ -67,8 +67,8 @@ class CircuitEllipse(Circuit):
                                 self.inner[1] * self.inner[1] * math.cos(theta) * math.cos(theta))
             if d >= r1 - self.wall or d <= r2:
                 return Circuit.COLLISION_WALL
-            elif(d <= r2 + self.gray or
-                d >= r1 - self.gray):
+            elif(d <= r2 + self.slow_area or
+                d >= r1 - self.slow_area):
                 c = Circuit.COLLISION_SLOW_AREA
         return c
         

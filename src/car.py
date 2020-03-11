@@ -8,26 +8,29 @@ from shapely.geometry.polygon import Polygon
 from circuit import Circuit
 
 class Car():
-    def __init__(self, fps, x, y, start_angle=90, number_of_visions=18,
-                    vision_length = 64, car_vision_colors=[(0, 254,0), (255, 0, 0)],
-                    width = 8, height = 16, car_color=(0, 0, 255),
-                    front_color=(0, 255, 255)):
+    def __init__(self, config):
         """Receives information about the car. start_angle is relative to East and is
         anti-clockwise."""
-        if number_of_visions < 3:
+        self.config = config
+        if config['number_of_visions'] < 3:
             exit(0)
-        self.frame_time = 1/fps
-        self.width = width
-        self.height = height
-        self.x = x
-        self.y = y
-        self.car_color = car_color
-        self.front_color = front_color
+        self.frame_time = 1/config['fps']
+        self.car_width = config['car_width']
+        self.car_height = config['car_height']
+
+        self.set_default_settings()
+
+    def set_default_settings(self):
+        config = self.config
+        self.x = config['x']
+        self.y = config['y']
+        self.car_color = config['car_color']
+        self.front_color = config['front_color']
 
         self.EPS = 1e-6
 
-        # The car is 1m x 2m, so, the amount of pixels in it width is a meter.
-        self.pixels_per_meter = width
+        # The car is 1m x 2m, so, the amount of pixels in it car_width is a meter.
+        self.pixels_per_meter = config['car_width']
 
         self.friction_movement = 0.005
         self.friction_multiplier = 1
@@ -39,48 +42,52 @@ class Car():
         # Acceleration in amount of pixels per iteration
         self.acc_pixels = 0.1
 
-        surface_side = 1.4*max(max(width, height), 2*vision_length)
+        surface_side = 1.4*max(max(config['car_width'], config['car_height']), 2*config['vision_length'])
         self.center = [round(surface_side/2), round(surface_side/2)]
         self.x -= self.center[0]
         self.y -= self.center[1]
 
-        self.car_structure = [  (self.center[0] - self.width/2, self.center[1] - self.height/2),
-                                (self.center[0] + self.width/2, self.center[1] - self.height/2),
-                                (self.center[0] + self.width/2, self.center[1] + self.height/2),
-                                (self.center[0] - self.width/2, self.center[1] + self.height/2) ]
-        self.car_front = [      (self.center[0] - self.width/2, self.center[1] + self.height/4),
-                                (self.center[0] + self.width/2, self.center[1] + self.height/4),
-                                (self.center[0] + self.width/2, self.center[1] + self.height/2),
-                                (self.center[0] - self.width/2, self.center[1] + self.height/2) ]
+        self.car_structure = [  (self.center[0] - self.car_width/2, self.center[1] - self.car_height/2),
+                                (self.center[0] + self.car_width/2, self.center[1] - self.car_height/2),
+                                (self.center[0] + self.car_width/2, self.center[1] + self.car_height/2),
+                                (self.center[0] - self.car_width/2, self.center[1] + self.car_height/2) ]
+        self.car_front = [      (self.center[0] - self.car_width/2, self.center[1] + self.car_height/4),
+                                (self.center[0] + self.car_width/2, self.center[1] + self.car_height/4),
+                                (self.center[0] + self.car_width/2, self.center[1] + self.car_height/2),
+                                (self.center[0] - self.car_width/2, self.center[1] + self.car_height/2) ]
+
+        # Car Vision
         self.car_seg_vision = []
-        self.vision_angles = np.linspace(-90, 90, number_of_visions)
-        self.vision = [False for x in range(vision_length)] # False, no collision
-        self.car_vision_colors = car_vision_colors
-        car_seg_vision_base = [self.center[0], self.center[1] + vision_length]
+        self.vision_angles = np.linspace(-90, 90, config['number_of_visions'])
+        self.vision = [False for x in range(config['vision_length'])] # False, no collision
+        self.car_vision_colors = config['car_vision_colors']
+        car_seg_vision_base = [self.center[0], self.center[1] + config['vision_length']]
         for angle_vision in self.vision_angles:
             self.car_seg_vision.append(self.rotate_point_degree(self.center, car_seg_vision_base, -angle_vision))
 
-        # base_vision = 
-
         # -90 makes car orientation to East, update_car_angle is clockwise,
         # -start_angle because start_angle is anti-clockwise.
-        self.update_car_angle(-90 + -start_angle)
-        self.direction = self.rotate_point_degree((0, 0), self.direction, -start_angle)
+        self.update_car_angle(-90 + -config['start_angle'])
+        self.direction = self.rotate_point_degree((0, 0), self.direction, -config['start_angle'])
 
-        self.car_structure_orientations = self.generate_orientations(self.car_structure, 360)
-        self.car_front_orientations = self.generate_orientations(self.car_front, 360)
+        # self.car_structure_orientations = self.generate_orientations(self.car_structure, 360)
+        # self.car_front_orientations = self.generate_orientations(self.car_front, 360)
 
         self.surface = pygame.Surface((round(surface_side), round(surface_side)))
         self.surface.set_colorkey((0, 255, 0))
         self.surface.fill((0, 255, 0))
 
-    def generate_orientations(self, base, amount):
-        pass
+    def reset(self):
+        """Resets car to default configurations."""
+        self.set_default_settings()
+
+    # def generate_orientations(self, base, amount):
+    #     pass
 
     def handle_keys(self):
         """Do action based on pressed key."""
         key = pygame.key.get_pressed()
-        turn_angle_intensity = max(1.5, (11 - self.delta_pixels)/2)
+        turn_angle_intensity = max(2.25, (16 - self.delta_pixels)/3)
         turn_angle = 0
         if key[pygame.K_LEFT]:
             if(self.delta_pixels > self.EPS):
@@ -106,7 +113,12 @@ class Car():
         self.y += self.direction[1]*self.delta_pixels
 
         # Apply friction
-        self.delta_pixels *= 1 - self.friction_multiplier * self.friction_movement
+        speed = self.get_speed()
+        if not key[pygame.K_UP] and speed > 0 and speed < 5:
+            self.delta_pixels = max(0, self.delta_pixels -\
+                self.friction_multiplier*self.friction_movement)
+        else:
+            self.delta_pixels *= 1 - self.friction_multiplier * self.friction_movement
 
     def update_car_angle(self, angle):
         """Updates car graphics by the angle parameter in degrees. Rotates

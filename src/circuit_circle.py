@@ -5,11 +5,11 @@ from circuit import Circuit
 import time
 
 class CircuitCircle(Circuit):
-    def __init__(self, center, inner_circle, outter_circle, gray, wall, slow_multiplier, start_angle, width, height):
+    def __init__(self, center, inner_circle, outter_circle, slow_area, wall, slow_multiplier, start_angle, width, height):
         self.center = np.asarray(center)
         self.inner_circle = inner_circle
         self.outter_circle = outter_circle
-        self.gray = gray
+        self.slow_area = slow_area
         self.wall = wall
         self.color1 = (0,0,0)
         self.color2 = (255,255,255)
@@ -32,9 +32,9 @@ class CircuitCircle(Circuit):
         pygame.draw.circle(self.surface, self.color3, self.center,
                             self.outter_circle - self.wall)
         pygame.draw.circle(self.surface, self.color2, self.center,
-                            self.outter_circle - self.gray - self.wall)    
+                            self.outter_circle - self.slow_area - self.wall)    
         pygame.draw.circle(self.surface, self.color3, self.center,
-                            self.inner_circle + self.gray)    
+                            self.inner_circle + self.slow_area)    
         pygame.draw.circle(self.surface, self.color1, self.center,
                             self.inner_circle)    
         pygame.draw.circle(self.surface, self.color2, self.center,
@@ -56,8 +56,8 @@ class CircuitCircle(Circuit):
             d = math.hypot(self.center[0] - p[0], self.center[1] - p[1])
             if d <= self.inner_circle or d >= self.outter_circle - self.wall:
                 return Circuit.COLLISION_WALL
-            elif(d <= self.inner_circle + self.gray or
-                d >= self.outter_circle - self.gray):
+            elif(d <= self.inner_circle + self.slow_area or
+                d >= self.outter_circle - self.slow_area):
                 c = Circuit.COLLISION_SLOW_AREA
         return c
         

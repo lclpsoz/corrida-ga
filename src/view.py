@@ -6,7 +6,8 @@ class View():
         self.width = config['width']
         self.height = config['height']
         self.fps = config['fps']
-        self.screen = pygame.display.set_mode((self.width, self.height), pygame.DOUBLEBUF)
+        self.screen = pygame.display.set_mode((self.width, self.height),
+                        pygame.DOUBLEBUF)
         self.font = pygame.font.SysFont('mono', 20, bold=True)
         self.screen.fill((255, 255, 255))
 
