@@ -58,7 +58,7 @@ class Controller():
             'outter' : [250, 170],
             'slow_area' : 20, 
             'wall' : 2,
-            'slow_multiplier' : 20,
+            'slow_multiplier' : 10,
             'start_angle' : 90,
             'width' : self.config['width'],
             'height' : self.config['width']
@@ -70,7 +70,7 @@ class Controller():
             'outter_circle' : 250, 
             'slow_area' : 20, 
             'wall' : 2,
-            'slow_multiplier' : 20, 
+            'slow_multiplier' : 10, 
             'start_angle' : 90,
             'width' : self.config['width'],
             'height' : self.config['height']

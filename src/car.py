@@ -116,7 +116,7 @@ class Car():
         speed = self.get_speed()
         if not key[pygame.K_UP] and speed > 0 and speed < 5:
             self.delta_pixels = max(0, self.delta_pixels -\
-                self.friction_multiplier*self.friction_movement)
+                0.2*self.friction_multiplier*self.friction_movement)
         else:
             self.delta_pixels *= 1 - self.friction_multiplier * self.friction_movement
 
