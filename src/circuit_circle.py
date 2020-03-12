@@ -5,23 +5,23 @@ from circuit import Circuit
 import time
 
 class CircuitCircle(Circuit):
-    def __init__(self, center, inner_circle, outter_circle, slow_area, wall, slow_multiplier, start_angle, width, height):
-        self.center = np.asarray(center)
-        self.inner_circle = inner_circle
-        self.outter_circle = outter_circle
-        self.slow_area = slow_area
-        self.wall = wall
+    def __init__(self, config):
+        self.center = np.asarray(config['center'])
+        self.inner_circle = config['inner_circle']
+        self.outter_circle = config['outter_circle']
+        self.slow_area = config['slow_area']
+        self.wall = config['wall']
         self.color1 = (0,0,0)
         self.color2 = (255,255,255)
         self.color3 = (220,220,220)
-        self.surface = pygame.Surface((width, height))
-        self.start = np.asarray([center[0] - (self.outter_circle + self.inner_circle) // 2,
-                                    center[1]])
-        self.start_angle = start_angle
+        self.surface = pygame.Surface((config['width'], config['height']))
+        self.start = np.asarray([self.center[0] - (self.outter_circle + self.inner_circle) // 2,
+                                    self.center[1]])
+        self.start_angle = config['start_angle']
         self.sectors = []
         self.current_sector = []
         self.start_time = []
-        self.slow_friction_multiplier = slow_multiplier
+        self.slow_friction_multiplier = config['slow_multiplier']
     
     def draw(self):
         """Returns the pygame.Surface with the track drawed"""

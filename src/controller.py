@@ -64,8 +64,23 @@ class Controller():
             'height' : self.config['width']
         }
 
-        track = CircuitEllipse(config_circuit_ellipse)
-        # track = CircuitCircle([self.config['width'] // 2, self.config['height'] // 2], 150, 250, 20, 2, 20, 90, self.config['width'], self.config['height'])
+        config_circuit_circle = {
+            'center' : [self.config['width'] // 2, self.config['height'] // 2],
+            'inner_circle' : 150,
+            'outter_circle' : 250, 
+            'slow_area' : 20, 
+            'wall' : 2,
+            'slow_multiplier' : 20, 
+            'start_angle' : 90,
+            'width' : self.config['width'],
+            'height' : self.config['height']
+        }
+
+        opt = input("0 for Circle Circuit or 1 for Ellipse Circuit: ")
+        if opt == '0':
+            track = CircuitCircle(config_circuit_circle)
+        else:
+            track = CircuitEllipse(config_circuit_ellipse)
         circuit_surface = track.draw()
 
         config_car = {
