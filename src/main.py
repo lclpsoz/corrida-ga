@@ -6,9 +6,12 @@ import sys
 
 pygame.init()
 
-config = {  'width' : 1200,
-            'height': 600,
-            'fps' : 60      }
+config = {  
+    'width' : 1200,
+    'height': 600,
+    'fps' : 60,
+    'acum_fps_window' : 10
+}
 
 if len(sys.argv) > 1 and sys.argv[1] == 'ga':
     game_now = ControllerAI(config)
