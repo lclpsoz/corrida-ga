@@ -8,6 +8,10 @@ from shapely.geometry.polygon import Polygon
 from circuit import Circuit
 
 class Car():
+    MOVE_FORWARD = 0
+    MOVE_BREAK = 1
+    MOVE_LEFT = 2
+    MOVE_RIGHT = 3
     def __init__(self, config):
         """Receives information about the car. start_angle is relative to East and is
         anti-clockwise."""
@@ -73,6 +77,9 @@ class Car():
         # self.car_structure_orientations = self.generate_orientations(self.car_structure, 360)
         # self.car_front_orientations = self.generate_orientations(self.car_front, 360)
 
+        self.movement = [False, False, False, False] # Forward, Backward, Left, Right
+
+        # Start PyGame surface for the car
         self.surface = pygame.Surface((round(surface_side), round(surface_side)))
         self.surface.set_colorkey((0, 255, 0))
         self.surface.fill((0, 255, 0))
@@ -84,41 +91,48 @@ class Car():
     # def generate_orientations(self, base, amount):
     #     pass
 
-    def handle_keys(self):
-        """Do action based on pressed key."""
-        key = pygame.key.get_pressed()
+    def apply_turn(self):
+        # Apply turn to the car based on list movement
         turn_angle_intensity = max(2.25, (16 - self.delta_pixels)/3)
         turn_angle = 0
-        if key[pygame.K_LEFT]:
+        if self.movement[self.MOVE_LEFT]:
             if(self.delta_pixels > self.EPS):
                 turn_angle += -turn_angle_intensity
-                # self.delta_pixels *= 1-self.friction_turn_loss_percentage
-        if key[pygame.K_RIGHT]:
+        if self.movement[self.MOVE_RIGHT]:
             if(self.delta_pixels > self.EPS):
                 turn_angle += turn_angle_intensity
-                # self.delta_pixels *= 1-self.friction_turn_loss_percentage
-        if key[pygame.K_UP]:
-            self.delta_pixels += self.acc_pixels
 
-        # Apply turn
         self.direction = self.rotate_point_degree((0, 0), self.direction, turn_angle)
         self.update_car_angle(turn_angle)
 
+    def apply_movement(self):
+        # Apply movement to the car based on list movement
+        self.apply_turn()
+        
+        if self.movement[self.MOVE_FORWARD]:
+            self.delta_pixels += self.acc_pixels
+
         # Breaking
-        if key[pygame.K_DOWN]:
+        if self.movement[self.MOVE_BREAK]:
             self.delta_pixels = max(0, self.delta_pixels-1.5*self.acc_pixels)
 
-        # Apply movement
+        # Apply acceleration
         self.x += self.direction[0]*self.delta_pixels
         self.y += self.direction[1]*self.delta_pixels
 
         # Apply friction
         speed = self.get_speed()
-        if not key[pygame.K_UP] and speed > 0 and speed < 5:
+        if not self.movement[self.MOVE_FORWARD] and speed > 0 and speed < 5:
             self.delta_pixels = max(0, self.delta_pixels -\
                 0.2*self.friction_multiplier*self.friction_movement)
         else:
             self.delta_pixels *= 1 - self.friction_multiplier * self.friction_movement
+
+
+    def handle_keys(self):
+        """Updates movement based on pressed key(s)."""
+        key = pygame.key.get_pressed()
+        self.movement = [key[pygame.K_UP], key[pygame.K_DOWN], key[pygame.K_LEFT], key[pygame.K_RIGHT]]
 
     def update_car_angle(self, angle):
         """Updates car graphics by the angle parameter in degrees. Rotates

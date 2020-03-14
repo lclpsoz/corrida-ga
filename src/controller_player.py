@@ -3,32 +3,31 @@ from car import Car
 from view import View
 from circuit_circle import CircuitCircle
 from circuit_ellipse import CircuitEllipse
-from circuit_squared import CircuitSquared
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 import numpy as np
 from datetime import datetime
 import time
 
-class Controller():
+class ControllerPlayer():
     def __init__(self, config):
         self.view = View(config)
         self.config = config
 
-    def get_player_data_str(self, player):
-        """Builds a dict about the player car and returns it."""
-        player_data = {}
-        player_data['coord'] = str(player.get_pos())
-        player_data['speed'] = str("%.2f" % player.get_speed()) + " m/s"
-        player_data['dir'] = '(' + str("%.2f" % player.direction[0]) + ', ' + \
-                                        str("%.2f" % player.direction[1]) + ')'
-        player_data['angle'] = str("%.2fº | %.2f rads" % (player.get_angle_degrees(), player.get_angle()))
-        return player_data
+    def get_car_data_str(self, car):
+        """Builds a dict about the car car and returns it."""
+        car_data = {}
+        car_data['coord'] = str(car.get_pos())
+        car_data['speed'] = str("%.2f" % car.get_speed()) + " m/s"
+        car_data['dir'] = '(' + str("%.2f" % car.direction[0]) + ', ' + \
+                                        str("%.2f" % car.direction[1]) + ')'
+        car_data['angle'] = str("%.2fº | %.2f rads" % (car.get_angle_degrees(), car.get_angle()))
+        return car_data
         
-    def reset(self, player, player_id, track):
+    def reset(self, car, car_id, track):
         """Resets car and track."""
-        player.reset()
-        track.reset(player_id)
+        car.reset()
+        track.reset(car_id)
 
     def wait_key(self, key):
         """Wait for a specific pygame key. Still checks for exit keys."""
@@ -51,7 +50,6 @@ class Controller():
 
     def run(self):
         """Run game."""
-
         config_circuit_ellipse = {
             'center' : [self.config['width'] // 2, self.config['height'] // 2],
             'inner' : [150, 80],
@@ -132,6 +130,7 @@ class Controller():
             else:
                 player.set_friction_multiplier(1)
                 player.handle_keys()
+            player.apply_movement()
 
             player_surface = player.draw()
             track.update_sector(player_id, player)
@@ -142,7 +141,7 @@ class Controller():
             self.view.draw_text(0, 200, "Sector: " + str(track.current_sector[player_id]),
                 pygame.font.SysFont('mono', 20, bold=True), (255, 0, 0))
             self.view.draw_car_controls(player.get_controls(), [0, 0])
-            self.view.draw_player_data(self.get_player_data_str(player), [0, 60])
+            self.view.draw_player_data(self.get_car_data_str(player), [0, 60])
             
             # tantantan tantantan
             if track.finished(player_id):
@@ -167,4 +166,3 @@ class Controller():
             for event in pygame.event.get():
                 if self.is_exit(event):
                     running = False
-            
