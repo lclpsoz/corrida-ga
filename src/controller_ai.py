@@ -8,6 +8,7 @@ from shapely.geometry.polygon import Polygon
 import numpy as np
 from datetime import datetime
 from functools import partial
+import random
 import time
 
 class ControllerAI():
@@ -60,6 +61,23 @@ class ControllerAI():
             car.movement = mov_free
         else:
             car.movement = mov_blocked
+
+    def ai_heur(self, vision_range_size, mov_free, odd_mov_1, mov_blocked_1,
+                    mov_blocked_2, car):
+        """Manually programmed AI. The vision_range_size determines the amount
+        of vision segments that will be considered when deciding if the movement
+        is free or blocked. There's a chance of odd_mov_1 that mov_blocked_1 will
+        be applied and 1 - odd_mov_1 that mov_blocked_2 will be."""
+        mid = len(car.vision)//2
+        left = mid - vision_range_size//2
+        right = mid + vision_range_size//2 + 1
+        if not any(car.vision[left : right]):
+            car.movement = mov_free
+        else:
+            if random.random() < odd_mov_1:
+                car.movement = mov_blocked_1
+            else:
+                car.movement = mov_blocked_2
 
     def run(self):
         """Run project."""
@@ -128,7 +146,27 @@ class ControllerAI():
                     partial(self.ai_manual, 5, [1, 0, 0, 0], [0, 1, 0, 1]), # Accelerates OR (Turn Right AND Breaks)
                     partial(self.ai_manual, 5, [1, 0, 0, 0], [0, 0, 0, 1]), # Accelerates OR Turn Right
                     partial(self.ai_manual, 5, [1, 0, 0, 0], [1, 0, 0, 1])] # Accelerates OR (Accelerates AND Turn Right)
+        cars_names = [  "ai_manual_0",
+                        "ai_manual_1",
+                        "ai_manual_2",
+                        "ai_manual_3",
+                        "ai_manual_4"]
         
+        while(len(cars) < 10):
+            config_car_now = config_car.copy()
+            config_car_now['car_color'] = random.choice(list(pygame.color.THECOLORS.items()))[1]
+            cars.append(Car(config_car_now))
+            cars_id.append(track.add_car(cars[-1]))
+            odd_blocked_1 = random.random()
+            ai = partial(self.ai_heur,
+                            5,
+                            [1, 0, 0, 0],
+                            odd_blocked_1,
+                            [0, 0, 0, 1],
+                            [1, 0, 0, 0])
+            cars_ai.append(ai)
+            cars_names.append("ai_heur_%.3f" % odd_blocked_1)
+
         running = True
         while running:
             self.view.blit(circuit_surface, [0, 0])
