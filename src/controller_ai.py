@@ -152,7 +152,7 @@ class ControllerAI():
                         "ai_manual_3",
                         "ai_manual_4"]
         
-        while(len(cars) < 25):
+        while(len(cars) < 100):
             config_car_now = config_car.copy()
             config_car_now['car_color'] = random.choice(list(pygame.color.THECOLORS.items()))[1]
             cars.append(Car(config_car_now))
@@ -163,16 +163,19 @@ class ControllerAI():
                             [1, 0, 0, 0],
                             odd_blocked_1,
                             [0, 0, 0, 1],
-                            [1, 0, 0, 0])
+                            [1, 0, 0, 1])
             cars_ai.append(ai)
             cars_names.append("ai_heur_%.3f" % odd_blocked_1)
         cars_evals = [None for x in range(len(cars))]
+        cars_active = [True for x in range(len(cars))]
 
         running = True
         while running:
             self.view.blit(circuit_surface, [0, 0])
             
             for i in range(len(cars)):
+                if not cars_active[i]:
+                    continue
                 car = cars[i]
                 car_id = cars_id[i]
                 car_ai = cars_ai[i]
@@ -188,7 +191,7 @@ class ControllerAI():
                         cars_evals[car_id] = \
                             [track.get_car_perc_sectors(car_id),
                             track.get_car_num_frames(car_id, self.view.num_frame)]
-                    self.reset(car, car_id, track)
+                    cars_active[i] = False
                 elif(collision == CircuitCircle.COLLISION_SLOW_AREA):
                     car.set_friction_multiplier(track.slow_friction_multiplier)
                 else:
@@ -199,13 +202,13 @@ class ControllerAI():
                         cars_evals[car_id] = \
                             [1.0,
                             track.get_car_num_frames(car_id, self.view.num_frame)]
-                    self.reset(car, car_id, track)
+                    cars_active[i] = False
 
                 car_surface = car.draw()
                 track.update_car_sector(car_id, car)
                 self.view.blit(car_surface, car.get_pos_surface())
 
-            self.view.draw_car_ai_eval(cars_names, cars_evals, [0, 0])
+            self.view.draw_car_ai_eval(cars_names, cars_evals, [0, 0], True)
             self.view.update()
 
             # Events
