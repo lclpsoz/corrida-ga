@@ -13,6 +13,8 @@ class View():
         self.screen.fill((255, 255, 255))
         self.clock = pygame.time.Clock()
 
+        self.num_frame = 0
+
         self.sum_of_fps = 0
         self.acum_fps = deque()
         self.acum_fps_window = config['acum_fps_window'] # In number of seconds
@@ -42,6 +44,21 @@ class View():
             self.draw_text(pos[0], pos[1], control, self.font)
             pos[1] += 20
 
+    def draw_car_ai_eval(self, cars_names, cars_evals, pos : list):
+        """Write information about cars evaluation starting in pos."""
+        font_size = 10
+        font = pygame.font.SysFont('mono', font_size, bold=True)
+        for i in range(len(cars_names)):
+            if cars_evals[i]:
+                txt = cars_names[i] + " : " + ("p=%.2f, f=%d" % tuple(cars_evals[i]))
+            else:
+                txt = cars_names[i] + " = None"
+            self.draw_text(pos[0], pos[1],
+                txt, 
+                pygame.font.SysFont('mono', 15, bold=False))
+            pos[1] += font_size+2
+
+
     def update(self):
         """Updates frame."""
         self.clock.tick(self.fps)
@@ -55,5 +72,6 @@ class View():
                         self.acum_fps_window, self.sum_of_fps/len(self.acum_fps)), 
                         self.font)
 
+        self.num_frame += 1
         pygame.display.update()
         self.screen.fill((255, 255, 255))            

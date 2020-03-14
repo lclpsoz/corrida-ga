@@ -27,7 +27,7 @@ class ControllerPlayer():
     def reset(self, car, car_id, track):
         """Resets car and track."""
         car.reset()
-        track.reset(car_id)
+        track.reset(car_id, self.view.num_frame)
 
     def wait_key(self, key):
         """Wait for a specific pygame key. Still checks for exit keys."""
@@ -97,7 +97,7 @@ class ControllerPlayer():
         player = Car(config_car)
         car_controls = Car.get_controls()
 
-        player_id = track.add_car(player)
+        player_id = track.add_car(player, self.view.num_frame)
         
         running = True
         while running:
@@ -156,7 +156,7 @@ class ControllerPlayer():
                     "Pressione espaço para continuar!", pygame.font.SysFont('mono', 40, bold=True), (120, 255, 0))
                 self.view.update()
                 if self.wait_key(pygame.K_SPACE):
-                    self.reset(player, player_id, track)
+                    self.reset(player, player_id, track, self.view.num_frame)
                 else:
                     running = False
 

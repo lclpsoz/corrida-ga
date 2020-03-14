@@ -39,12 +39,6 @@ class CircuitEllipse(Circuit):
                             2 * (self.inner[0] - self.wall), 2 * (self.inner[1] - self.wall)))
         return self.surface
 
-    def reset(self, car_id):
-        self.car_sectors[car_id] = [0 for i in range(self.num_of_sectors)]
-        self.car_sectors[car_id][0] = 1
-        self.car_current_sector[car_id] = 0
-        self.car_start_time[car_id] = time.time()
-
     def collision(self, shape):
         """Returns the type of collision of the shapely shape and the circuit.
         Can be NONE, SLOW_AREA or WALL."""

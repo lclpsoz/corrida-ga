@@ -19,6 +19,7 @@ class Circuit(metaclass=ABCMeta):
         self.car_start_time = []
         self.car_sectors = []
         self.car_current_sector = []
+        self.car_start_frame = []
     
     @abstractmethod
     def collision(self, shape):
@@ -30,26 +31,30 @@ class Circuit(metaclass=ABCMeta):
     def draw(self):
         """Returns the pygame.Surface with the track drawed."""
         pass
-    
-    @abstractmethod
-    def reset(self, car_id):
-        """Reset car"""
-        pass
 
     @abstractmethod
     def update_car_sector(self, car_id, player):
         """Updates the sector of the car."""
         pass
 
-    def add_car(self, player):
+    def add_car(self, player, frame_now):
         """Adds a car in the circuit."""
         id = len(self.car_sectors)
         self.car_sectors.append([0 for i in range(self.num_of_sectors)])
         self.car_sectors[id][0] = 1
         self.car_current_sector.append(0)
         self.car_start_time.append(time.time())
+        self.car_start_frame.append(frame_now)
 
         return id
+    
+    def reset(self, car_id, frame_now):
+        """Reset car with car_id."""
+        self.car_sectors[car_id] = [0 for i in range(self.num_of_sectors)]
+        self.car_sectors[car_id][0] = 1
+        self.car_current_sector[car_id] = 0
+        self.car_start_time[car_id] = time.time()
+        self.car_start_frame[car_id] = frame_now
 
     def finished(self, car_id):
         """True if the car finished the circuit, False otherwise."""
@@ -71,6 +76,10 @@ class Circuit(metaclass=ABCMeta):
     def get_current_car_time(self, car_id):
         """Returns current time by car with car_id."""
         return time.time() - self.car_start_time[car_id]
+
+    def get_car_num_frames(self, car_id, frame_now):
+        """Returns number of frames since the car was added."""
+        return frame_now - self.car_start_frame[car_id]
 
     def get_car_perc_sectors(self, car_id):
         """Returns percentage of sectors already traversed by car with car_id."""

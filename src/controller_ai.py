@@ -29,7 +29,7 @@ class ControllerAI():
     def reset(self, car, car_id, track):
         """Resets car and track."""
         car.reset()
-        track.reset(car_id)
+        track.reset(car_id, self.view.num_frame)
 
     def wait_key(self, key):
         """Wait for a specific pygame key. Still checks for exit keys."""
@@ -140,7 +140,7 @@ class ControllerAI():
                 Car(config_car_5)]
         cars_id = []
         for car in cars:
-            cars_id.append(track.add_car(car))
+            cars_id.append(track.add_car(car, self.view.num_frame))
         cars_ai = [partial(self.ai_manual, 1, [1, 0, 0, 0], [0, 1, 0, 1]),
                     partial(self.ai_manual, 3, [1, 0, 0, 0], [0, 1, 0, 1]),
                     partial(self.ai_manual, 5, [1, 0, 0, 0], [0, 1, 0, 1]), # Accelerates OR (Turn Right AND Breaks)
@@ -152,11 +152,11 @@ class ControllerAI():
                         "ai_manual_3",
                         "ai_manual_4"]
         
-        while(len(cars) < 10):
+        while(len(cars) < 25):
             config_car_now = config_car.copy()
             config_car_now['car_color'] = random.choice(list(pygame.color.THECOLORS.items()))[1]
             cars.append(Car(config_car_now))
-            cars_id.append(track.add_car(cars[-1]))
+            cars_id.append(track.add_car(cars[-1], self.view.num_frame))
             odd_blocked_1 = random.random()
             ai = partial(self.ai_heur,
                             5,
@@ -166,6 +166,7 @@ class ControllerAI():
                             [1, 0, 0, 0])
             cars_ai.append(ai)
             cars_names.append("ai_heur_%.3f" % odd_blocked_1)
+        cars_evals = [None for x in range(len(cars))]
 
         running = True
         while running:
@@ -180,22 +181,31 @@ class ControllerAI():
                 car.update_vision(track)
 
                 car_ai(car)
+                car.apply_movement()
 
                 if(collision == CircuitCircle.COLLISION_WALL):
+                    if cars_evals[car_id] == None:
+                        cars_evals[car_id] = \
+                            [track.get_car_perc_sectors(car_id),
+                            track.get_car_num_frames(car_id, self.view.num_frame)]
                     self.reset(car, car_id, track)
                 elif(collision == CircuitCircle.COLLISION_SLOW_AREA):
                     car.set_friction_multiplier(track.slow_friction_multiplier)
                 else:
                     car.set_friction_multiplier(1)
-                car.apply_movement()
+                
+                if track.finished(car_id):
+                    if cars_evals[car_id] == None:
+                        cars_evals[car_id] = \
+                            [1.0,
+                            track.get_car_num_frames(car_id, self.view.num_frame)]
+                    self.reset(car, car_id, track)
 
                 car_surface = car.draw()
                 track.update_car_sector(car_id, car)
                 self.view.blit(car_surface, car.get_pos_surface())
-                
-                if track.finished(car_id):
-                    self.reset(car, car_id, track)
 
+            self.view.draw_car_ai_eval(cars_names, cars_evals, [0, 0])
             self.view.update()
 
             # Events
