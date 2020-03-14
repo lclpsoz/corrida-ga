@@ -108,7 +108,7 @@ class ControllerPlayer():
             player.update_vision(track)
 
             if(collision == CircuitCircle.COLLISION_WALL):
-                time_elapsed = datetime.fromtimestamp(track.get_current_time(player_id))
+                time_elapsed = datetime.fromtimestamp(track.get_current_car_time(player_id))
                 str_time = time_elapsed.strftime("%M:%S:%f")
                 print("Crashed! " + str_time)
                 self.view.draw_text(self.config['width'] // 2 - 200, self.config['height'] // 2,
@@ -133,19 +133,19 @@ class ControllerPlayer():
             player.apply_movement()
 
             player_surface = player.draw()
-            track.update_sector(player_id, player)
+            track.update_car_sector(player_id, player)
             self.view.blit(player_surface, player.get_pos_surface())
             
             # Screen information
             text_pos_top_left = 0
-            self.view.draw_text(0, 200, "Sector: " + str(track.current_sector[player_id]),
+            self.view.draw_text(0, 200, "Sector: " + str(track.car_current_sector[player_id]),
                 pygame.font.SysFont('mono', 20, bold=True), (255, 0, 0))
             self.view.draw_car_controls(player.get_controls(), [0, 0])
             self.view.draw_player_data(self.get_car_data_str(player), [0, 60])
             
             # tantantan tantantan
             if track.finished(player_id):
-                time_elapsed = datetime.fromtimestamp(track.get_current_time(player_id))
+                time_elapsed = datetime.fromtimestamp(track.get_current_car_time(player_id))
                 str_time = time_elapsed.strftime("%M:%S:%f")
                 print("Finished the track! " + str_time)
                 self.view.draw_text(self.config['width'] // 2 - 200, self.config['height'] // 2,

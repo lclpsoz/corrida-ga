@@ -6,52 +6,44 @@ import time
 
 class CircuitEllipse(Circuit):
     def __init__(self, config):
+        super(CircuitEllipse, self).__init__(config)
         self.center = np.asarray(config['center'])
         self.inner = config['inner']
         self.outter = config['outter']
-        self.slow_area = config['slow_area']
-        self.wall = config['wall']
-        self.color1 = (0,0,0)
-        self.color2 = (255,255,255)
-        self.color3 = (220,220,220)
         self.surface = pygame.Surface((config['width'], config['height']))
         self.start = np.asarray([self.center[0] - (self.outter[0] + self.inner[0]) // 2,
                                     self.center[1]])
-        self.start_angle = config['start_angle']
-        self.sectors = []
-        self.current_sector = []
-        self.start_time = []
-        self.slow_friction_multiplier = config['slow_multiplier']
+        self.num_of_sectors = 36
     
     def draw(self):
         """Returns the pygame.Surface with the track drawed"""
         self.surface.set_colorkey((0, 255, 0))
         self.surface.fill((0,255,0))
-        pygame.draw.ellipse(self.surface, self.color1, 
+        pygame.draw.ellipse(self.surface, self.color_background, 
                             (self.center[0] - self.outter[0], self.center[1] - self.outter[1],
                             2 * self.outter[0], 2 * self.outter[1]))    
-        pygame.draw.ellipse(self.surface, self.color3,
+        pygame.draw.ellipse(self.surface, self.color_slow_area,
                             (self.center[0] - self.outter[0] + self.wall, self.center[1] - self.outter[1] + self.wall, 
                             2 * (self.outter[0] - self.wall), 2 * (self.outter[1] - self.wall)))
-        pygame.draw.ellipse(self.surface, self.color2,
+        pygame.draw.ellipse(self.surface, self.color_wall,
                             (self.center[0] - self.outter[0] + self.slow_area + self.wall, self.center[1] - self.outter[1] + self.slow_area + self.wall, 
                             2 * (self.outter[0] - self.slow_area - self.wall), 2 * (self.outter[1] - self.slow_area - self.wall)))
-        pygame.draw.ellipse(self.surface, self.color3,
+        pygame.draw.ellipse(self.surface, self.color_slow_area,
                             (self.center[0] - self.inner[0] - self.slow_area, self.center[1] - self.inner[1] - self.slow_area,
                             2 * (self.inner[0] + self.slow_area), 2 * (self.inner[1] + self.slow_area)))
-        pygame.draw.ellipse(self.surface, self.color1,
+        pygame.draw.ellipse(self.surface, self.color_background,
                             (self.center[0] - self.inner[0], self.center[1] - self.inner[1],
                             2 * self.inner[0], 2 * self.inner[1]))
-        pygame.draw.ellipse(self.surface, self.color2,
+        pygame.draw.ellipse(self.surface, self.color_wall,
                             (self.center[0] - self.inner[0] + self.wall, self.center[1] - self.inner[1] + self.wall,
                             2 * (self.inner[0] - self.wall), 2 * (self.inner[1] - self.wall)))
         return self.surface
 
-    def reset(self, player_id):
-        self.sectors[player_id] = [0 for i in range(36)]
-        self.sectors[player_id][0] = 1
-        self.current_sector[player_id] = 0
-        self.start_time[player_id] = time.time()
+    def reset(self, car_id):
+        self.car_sectors[car_id] = [0 for i in range(self.num_of_sectors)]
+        self.car_sectors[car_id][0] = 1
+        self.car_current_sector[car_id] = 0
+        self.car_start_time[car_id] = time.time()
 
     def collision(self, shape):
         """Returns the type of collision of the shapely shape and the circuit.
@@ -71,15 +63,6 @@ class CircuitEllipse(Circuit):
                 d >= r1 - self.slow_area):
                 c = Circuit.COLLISION_SLOW_AREA
         return c
-        
-    def add_car(self, player):
-        """Adds a car in the circuit """
-        id = len(self.sectors)
-        self.sectors.append([0 for i in range(36)])
-        self.sectors[id][0] = 1
-        self.current_sector.append(0)
-        self.start_time.append(time.time())
-        return id
 
     def cur_sector(self, point):
         """Returns the sector of a point"""
@@ -90,22 +73,14 @@ class CircuitEllipse(Circuit):
             angle += 360
         return int(angle // 10)
 
-    def update_sector(self, player_id, player):
+    def update_car_sector(self, car_id, player):
         """Updates the sector of the car (maximum sector of all its points)"""
         now = -1
         for p in player.get_points():
             now = max(now, self.cur_sector(p))
 
-        if ((self.current_sector[player_id] + 1) % 36 == now) and\
-                (self.sectors[player_id][self.current_sector[player_id]] == 1):
-            self.sectors[player_id][now] = 1
+        if ((self.car_current_sector[car_id] + 1) % self.num_of_sectors == now) and\
+                (self.car_sectors[car_id][self.car_current_sector[car_id]] == 1):
+            self.car_sectors[car_id][now] = 1
 
-        self.current_sector[player_id] = now
-
-    def finished(self, player_id):
-        """True if the car finished the circuit, False otherwise"""
-        for i in range(36):
-            if self.sectors[player_id][i] == 0:
-                return False
-       
-        return self.current_sector[player_id] == 0
+        self.car_current_sector[car_id] = now

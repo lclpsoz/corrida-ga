@@ -190,7 +190,7 @@ class ControllerAI():
                 car.apply_movement()
 
                 car_surface = car.draw()
-                track.update_sector(car_id, car)
+                track.update_car_sector(car_id, car)
                 self.view.blit(car_surface, car.get_pos_surface())
                 
                 if track.finished(car_id):
