@@ -7,9 +7,10 @@ from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 import numpy as np
 from datetime import datetime
+from functools import partial
 import time
 
-class ControllerPlayer():
+class ControllerAI():
     def __init__(self, config):
         self.view = View(config)
         self.config = config
@@ -47,6 +48,18 @@ class ControllerPlayer():
             if event.key == pygame.K_ESCAPE:
                 return True
         return False
+
+    def ai_manual(self, vision_range_size, mov_free, mov_blocked, car):
+        """Manually programmed AI. The vision_range_size determines the amount
+        of vision segments that will be considered when deciding if the movement
+        is free or blocked."""
+        mid = len(car.vision)//2
+        left = mid - vision_range_size//2
+        right = mid + vision_range_size//2 + 1
+        if not any(car.vision[left : right]):
+            car.movement = mov_free
+        else:
+            car.movement = mov_blocked
 
     def run(self):
         """Run project."""
@@ -94,71 +107,56 @@ class ControllerPlayer():
             'car_color' : (0, 0, 255),
             'front_color' : (0, 255, 255)
         }
-        player = Car(config_car)
-        car_controls = Car.get_controls()
-
-        player_id = track.add_car(player)
+        config_car_2 = config_car.copy()
+        config_car_2['car_color'] = (255, 0, 0)
+        config_car_3 = config_car.copy()
+        config_car_3['car_color'] = (0, 255, 255)
+        config_car_4 = config_car.copy()
+        config_car_4['car_color'] = (255, 125, 0)
+        config_car_5 = config_car.copy()
+        config_car_5['car_color'] = (125, 0, 255)
+        cars = [Car(config_car),
+                Car(config_car_2),
+                Car(config_car_3),
+                Car(config_car_4),
+                Car(config_car_5)]
+        cars_id = []
+        for car in cars:
+            cars_id.append(track.add_car(car))
+        cars_ai = [partial(self.ai_manual, 1, [1, 0, 0, 0], [0, 1, 0, 1]),
+                    partial(self.ai_manual, 3, [1, 0, 0, 0], [0, 1, 0, 1]),
+                    partial(self.ai_manual, 5, [1, 0, 0, 0], [0, 1, 0, 1]), # Accelerates OR (Turn Right AND Breaks)
+                    partial(self.ai_manual, 5, [1, 0, 0, 0], [0, 0, 0, 1]), # Accelerates OR Turn Right
+                    partial(self.ai_manual, 5, [1, 0, 0, 0], [1, 0, 0, 1])] # Accelerates OR (Accelerates AND Turn Right)
         
         running = True
         while running:
             self.view.blit(circuit_surface, [0, 0])
             
-            # Check for collision
-            collision = track.collision_car(player)
-            player.update_vision(track)
+            for i in range(len(cars)):
+                car = cars[i]
+                car_id = cars_id[i]
+                car_ai = cars_ai[i]
 
-            if(collision == CircuitCircle.COLLISION_WALL):
-                time_elapsed = datetime.fromtimestamp(track.get_current_time(player_id))
-                str_time = time_elapsed.strftime("%M:%S:%f")
-                print("Crashed! " + str_time)
-                self.view.draw_text(self.config['width'] // 2 - 200, self.config['height'] // 2,
-                    "Bateu!", pygame.font.SysFont('mono', 50, bold=True), (0, 255, 0))
-                self.view.draw_text(self.config['width'] // 2 - 250, self.config['height'] // 2 + 50,
-                    "Time: " + str_time, pygame.font.SysFont('mono', 40, bold=True), (120, 255, 0))
-                self.view.draw_text(self.config['width'] // 2 - 370, self.config['height'] // 2 + 100,
-                    "Pressione espaço para continuar!", pygame.font.SysFont('mono', 40, bold=True), (120, 255, 0))
-                self.view.update()
-                if self.wait_key(pygame.K_SPACE):
-                    self.reset(player, player_id, track)
-                else:
-                    running = False
-            elif(collision == CircuitCircle.COLLISION_SLOW_AREA):
-                player.set_friction_multiplier(track.slow_friction_multiplier)
-                player.handle_keys()
-                self.view.draw_text(0, 180, "Dirigindo em area lenta!",
-                    pygame.font.SysFont('mono', 20, bold=True), (255, 0, 0))
-            else:
-                player.set_friction_multiplier(1)
-                player.handle_keys()
-            player.apply_movement()
+                collision = track.collision_car(car)
+                car.update_vision(track)
 
-            player_surface = player.draw()
-            track.update_sector(player_id, player)
-            self.view.blit(player_surface, player.get_pos_surface())
-            
-            # Screen information
-            text_pos_top_left = 0
-            self.view.draw_text(0, 200, "Sector: " + str(track.current_sector[player_id]),
-                pygame.font.SysFont('mono', 20, bold=True), (255, 0, 0))
-            self.view.draw_car_controls(player.get_controls(), [0, 0])
-            self.view.draw_player_data(self.get_car_data_str(player), [0, 60])
-            
-            # tantantan tantantan
-            if track.finished(player_id):
-                time_elapsed = datetime.fromtimestamp(track.get_current_time(player_id))
-                str_time = time_elapsed.strftime("%M:%S:%f")
-                print("Finished the track! " + str_time)
-                self.view.draw_text(self.config['width'] // 2 - 200, self.config['height'] // 2,
-                    "Acabou!", pygame.font.SysFont('mono', 50, bold=True), (0, 255, 0))
-                self.view.draw_text(self.config['width'] // 2 - 250, self.config['height'] // 2 + 50,
-                    "Time: " + str_time, pygame.font.SysFont('mono', 40, bold=True), (120, 255, 0))
-                self.view.draw_text(self.config['width'] // 2 - 370, self.config['height'] // 2 + 100,
-                    "Pressione espaço para continuar!", pygame.font.SysFont('mono', 40, bold=True), (120, 255, 0))
-                self.view.update()
-                if self.wait_key(pygame.K_SPACE):
-                    self.reset(player, player_id, track)
+                car_ai(car)
+
+                if(collision == CircuitCircle.COLLISION_WALL):
+                    self.reset(car, car_id, track)
+                elif(collision == CircuitCircle.COLLISION_SLOW_AREA):
+                    car.set_friction_multiplier(track.slow_friction_multiplier)
                 else:
-                    running = False
+                    car.set_friction_multiplier(1)
+                car.apply_movement()
+
+                car_surface = car.draw()
+                track.update_sector(car_id, car)
+                self.view.blit(car_surface, car.get_pos_surface())
+                
+                if track.finished(car_id):
+                    self.reset(car, car_id, track)
 
             self.view.update()
 

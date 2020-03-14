@@ -63,7 +63,7 @@ class Car():
         # Car Vision
         self.car_seg_vision = []
         self.vision_angles = np.linspace(-90, 90, config['number_of_visions'])
-        self.vision = [False for x in range(config['vision_length'])] # False, no collision
+        self.vision = [False for x in range(config['number_of_visions'])] # False, no collision
         self.car_vision_colors = config['car_vision_colors']
         car_seg_vision_base = [self.center[0], self.center[1] + config['vision_length']]
         for angle_vision in self.vision_angles:
