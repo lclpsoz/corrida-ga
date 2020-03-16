@@ -60,10 +60,10 @@ class Circuit(metaclass=ABCMeta):
         """True if the car finished the circuit, False otherwise."""
         return sum(self.car_sectors[car_id]) == self.num_of_sectors
 
-    def collision_car(self, player):
+    def collision_car(self, car):
         """Returns the type of collision of the car and the circuit. Can be
         NONE, SLOW_AREA or WALL."""
-        return self.collision(Polygon(player.get_points()))
+        return self.collision(Polygon(car.get_points()))
 
     def batch_collision_car(self, list_cars):
         """Returns a list of types of collisions, each position corresponding

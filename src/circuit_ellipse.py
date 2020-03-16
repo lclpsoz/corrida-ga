@@ -3,6 +3,8 @@ import math
 import numpy as np
 from circuit import Circuit
 import time
+import collisions_wrapper
+import ctypes
 
 class CircuitEllipse(Circuit):
     def __init__(self, config):
@@ -57,6 +59,77 @@ class CircuitEllipse(Circuit):
                 d >= r1 - self.slow_area):
                 c = Circuit.COLLISION_SLOW_AREA
         return c
+
+    def batch_collision_car(self, list_cars):
+        """Returns a list of types of collisions, each position corresponding
+        to each car in list_cars."""
+        if collisions_wrapper.collisions:
+            ret = []
+            x = []
+            y = []
+            shapes_sizes = []
+            for car in list_cars:
+                pts = car.get_points()
+                shapes_sizes.append(len(pts))
+                for a, b in pts:
+                    x.append(a)
+                    y.append(b)
+            cols_points = self.batch_collision_points(x, y)
+            p_now = 0
+            for shape_sz in shapes_sizes:
+                maxi = -1
+                for i in range(p_now, p_now + shape_sz):
+                    maxi = max(maxi, cols_points[i])
+                ret.append(maxi)
+                p_now += shape_sz
+            assert(len(ret) == len(list_cars))
+            return ret
+        else:
+            return [self.collision_car(car) for car in list_cars]
+
+    def batch_collision(self, list_shapes : list):
+        """Returns a list of types of collisions, each position corresponding
+        to each shape in list_shapes."""
+        if collisions_wrapper.collisions:
+            ret = []
+            x = []
+            y = []
+            shapes_sizes = []
+            for shape in list_shapes:
+                pts = self.get_points_shape(shape)
+                shapes_sizes.append(len(pts))
+                for a, b in pts:
+                    x.append(a)
+                    y.append(b)
+            cols_points = self.batch_collision_points(x, y)
+            p_now = 0
+            for shape_sz in shapes_sizes:
+                maxi = -1
+                for i in range(p_now, p_now + shape_sz):
+                    maxi = max(maxi, cols_points[i])
+                ret.append(maxi)
+                p_now += shape_sz
+            assert(len(ret) == len(list_shapes))
+            return ret
+        else:
+            return [self.collision(shape) for shape in list_shapes]
+
+    def batch_collision_points(self, x, y):
+        """Receives points as two lists and returns the type of collision for
+        each."""
+        n = len(x)
+        x = (ctypes.c_float * n)(*x)
+        y = (ctypes.c_float * n)(*y)
+        center = (ctypes.c_float * len(self.center))(*self.center)
+        outter = (ctypes.c_float * len(self.outter))(*self.outter)
+        inner = (ctypes.c_float * len(self.inner))(*self.inner)
+        return collisions_wrapper.col_circuit_ellipse(x, y, center, outter, inner,
+                                                        self.wall, self.slow_area, n)
+        
+
+        # float *col_circuit_ellipse(float *x, float *y, float *center, float *outter,
+        #                             float *inner, float wall, float slow_area, int n) {
+
 
     def cur_sector(self, point):
         """Returns the sector of a point"""
