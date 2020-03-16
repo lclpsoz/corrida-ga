@@ -98,7 +98,7 @@ class ControllerAI():
         }
 
         num_of_cars = 100
-        ai = AIManual(num_of_cars, 10)
+        ai = AIManual(num_of_cars, 20)
         
         cars = []
         cars_colors = random.sample(pygame.color.THECOLORS.items(), k=num_of_cars)
@@ -148,7 +148,7 @@ class ControllerAI():
                     track.update_car_sector(car['id'], car['car'])
                     self.view.blit(car_surface, car['car'].get_pos_surface())
 
-            self.view.draw_car_ai_eval(cars, ai.features, [0, 0], True)
+            # self.view.draw_car_ai_eval(cars, ai.features, [0, 0], True)
             self.view.update()
 
             if ai.population_evaluated():
@@ -160,7 +160,7 @@ class ControllerAI():
                 else:
                     print("Last generation:")
                     for i in range(num_of_cars):
-                        print(ai.population[i], ai.features)
+                        print(ai.population[i], ai.features[i])
                     running = False
 
             # Events
