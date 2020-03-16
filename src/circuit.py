@@ -65,6 +65,16 @@ class Circuit(metaclass=ABCMeta):
         NONE, SLOW_AREA or WALL."""
         return self.collision(Polygon(player.get_points()))
 
+    def batch_collision_car(self, list_cars):
+        """Returns a list of types of collisions, each position corresponding
+        to each car in list_cars."""
+        return [self.collision_car(car) for car in list_cars]        
+
+    def batch_collision(self, list_shapes : list):
+        """Returns a list of types of collisions, each position corresponding
+        to each shape in list_shapes."""
+        return [self.collision(shape) for shape in list_shapes] 
+
     def get_points_shape(self, shape):
         """Receives any shapely shape and returns it points in a array"""
         if isinstance(shape, Polygon):

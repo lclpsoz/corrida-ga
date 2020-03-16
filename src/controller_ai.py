@@ -6,6 +6,7 @@ from circuit_ellipse import CircuitEllipse
 from ai_manual import AIManual
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
+from shapely.geometry import LineString
 import numpy as np
 from datetime import datetime
 from functools import partial
@@ -97,7 +98,7 @@ class ControllerAI():
             'front_color' : (0, 255, 255)
         }
 
-        num_of_cars = 100
+        num_of_cars = 50
         ai = AIManual(num_of_cars, 20)
         
         cars = []
@@ -115,23 +116,36 @@ class ControllerAI():
         while running:
             self.view.blit(circuit_surface, [0, 0])
             
+            # Batch check collision for all cars:
+            batch_col = track.batch_collision_car([car['car'] for car in cars])
+            for i in range(num_of_cars):
+                cars[i]['collision'] = batch_col[i]
+
+            # Batch check collision for vision in all cars:
+            list_shapes = []
+            for car in cars:
+                list_shapes.extend([LineString(line) for line in car['car'].get_points_vision()])
+            batch_col = track.batch_collision(list_shapes)
+            p_now = 0
+            for car in cars:
+                col_now = batch_col[p_now : p_now + len(car['car'].vision)]
+                p_now += len(car['car'].vision)
+                car['car'].vision = [col == CircuitCircle.COLLISION_WALL for col in col_now]
+
             for car in cars:
                 if not car['active']:
                     continue
 
-                collision = track.collision_car(car['car'])
-                car['car'].update_vision(track)
-
                 car['car'].movement = ai.calc_movement(car['id'], car['car'].vision)
                 car['car'].apply_movement()
 
-                if(collision == CircuitCircle.COLLISION_WALL):
+                if(car['collision'] == CircuitCircle.COLLISION_WALL):
                     ai.set_evaluation(car['id'], {
                         'perc_of_sectors' : track.get_car_perc_sectors(car['id']),
                         'amount_frames' : track.get_car_num_frames(car['id'], self.view.num_frame)
                     })
                     car['active'] = False
-                elif(collision == CircuitCircle.COLLISION_SLOW_AREA):
+                elif(car['collision'] == CircuitCircle.COLLISION_SLOW_AREA):
                     car['car'].set_friction_multiplier(track.slow_friction_multiplier)
                 else:
                     car['car'].set_friction_multiplier(1)

@@ -225,6 +225,14 @@ class Car():
 
         return ret
 
+    def get_points_vision(self):
+        """Returns list with vision segments as np arrays."""
+        list_vision = []
+        for seg_vis in self.car_seg_vision:
+            list_vision.append([np.array(self.center) + np.array([self.x, self.y]),
+                                np.array(seg_vis) + np.array([self.x, self.y])])
+        return list_vision
+
     def get_speed_squared(self):
         """Returns the speed of the car in meters per second squared."""
         return self.delta_pixels/self.frame_time
