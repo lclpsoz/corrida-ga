@@ -3,6 +3,7 @@ from car import Car
 from view import View
 from circuit_circle import CircuitCircle
 from circuit_ellipse import CircuitEllipse
+from ai_manual import AIManual
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 import numpy as np
@@ -50,35 +51,6 @@ class ControllerAI():
                 return True
         return False
 
-    def ai_manual(self, vision_range_size, mov_free, mov_blocked, car):
-        """Manually programmed AI. The vision_range_size determines the amount
-        of vision segments that will be considered when deciding if the movement
-        is free or blocked."""
-        mid = len(car.vision)//2
-        left = mid - vision_range_size//2
-        right = mid + vision_range_size//2 + 1
-        if not any(car.vision[left : right]):
-            car.movement = mov_free
-        else:
-            car.movement = mov_blocked
-
-    def ai_heur(self, vision_range_size, mov_free, odd_mov_1, mov_blocked_1,
-                    mov_blocked_2, car):
-        """Manually programmed AI. The vision_range_size determines the amount
-        of vision segments that will be considered when deciding if the movement
-        is free or blocked. There's a chance of odd_mov_1 that mov_blocked_1 will
-        be applied and 1 - odd_mov_1 that mov_blocked_2 will be."""
-        mid = len(car.vision)//2
-        left = mid - vision_range_size//2
-        right = mid + vision_range_size//2 + 1
-        if not any(car.vision[left : right]):
-            car.movement = mov_free
-        else:
-            if random.random() < odd_mov_1:
-                car.movement = mov_blocked_1
-            else:
-                car.movement = mov_blocked_2
-
     def run(self):
         """Run project."""
         config_circuit_ellipse = {
@@ -111,7 +83,6 @@ class ControllerAI():
         else:
             track = CircuitEllipse(config_circuit_ellipse)
         circuit_surface = track.draw()
-
         config_car = {
             'fps' : self.config['fps'],
             'x' : track.start[0],
@@ -125,91 +96,72 @@ class ControllerAI():
             'car_color' : (0, 0, 255),
             'front_color' : (0, 255, 255)
         }
-        config_car_2 = config_car.copy()
-        config_car_2['car_color'] = (255, 0, 0)
-        config_car_3 = config_car.copy()
-        config_car_3['car_color'] = (0, 255, 255)
-        config_car_4 = config_car.copy()
-        config_car_4['car_color'] = (255, 125, 0)
-        config_car_5 = config_car.copy()
-        config_car_5['car_color'] = (125, 0, 255)
-        cars = [Car(config_car),
-                Car(config_car_2),
-                Car(config_car_3),
-                Car(config_car_4),
-                Car(config_car_5)]
-        cars_id = []
-        for car in cars:
-            cars_id.append(track.add_car(car, self.view.num_frame))
-        cars_ai = [partial(self.ai_manual, 1, [1, 0, 0, 0], [0, 1, 0, 1]),
-                    partial(self.ai_manual, 3, [1, 0, 0, 0], [0, 1, 0, 1]),
-                    partial(self.ai_manual, 5, [1, 0, 0, 0], [0, 1, 0, 1]), # Accelerates OR (Turn Right AND Breaks)
-                    partial(self.ai_manual, 5, [1, 0, 0, 0], [0, 0, 0, 1]), # Accelerates OR Turn Right
-                    partial(self.ai_manual, 5, [1, 0, 0, 0], [1, 0, 0, 1])] # Accelerates OR (Accelerates AND Turn Right)
-        cars_names = [  "ai_manual_0",
-                        "ai_manual_1",
-                        "ai_manual_2",
-                        "ai_manual_3",
-                        "ai_manual_4"]
+
+        num_of_cars = 100
+        ai = AIManual(num_of_cars, 10)
         
-        while(len(cars) < 100):
+        cars = []
+        cars_colors = random.sample(pygame.color.THECOLORS.items(), k=num_of_cars)
+        while(len(cars) < num_of_cars):
             config_car_now = config_car.copy()
-            config_car_now['car_color'] = random.choice(list(pygame.color.THECOLORS.items()))[1]
-            cars.append(Car(config_car_now))
-            cars_id.append(track.add_car(cars[-1], self.view.num_frame))
-            odd_blocked_1 = random.random()
-            ai = partial(self.ai_heur,
-                            5,
-                            [1, 0, 0, 0],
-                            odd_blocked_1,
-                            [0, 0, 0, 1],
-                            [1, 0, 0, 1])
-            cars_ai.append(ai)
-            cars_names.append("ai_heur_%.3f" % odd_blocked_1)
-        cars_evals = [None for x in range(len(cars))]
-        cars_active = [True for x in range(len(cars))]
+            config_car_now['car_color'] = cars_colors.pop()[1]
+            cars.append({})
+            cars[-1]['car'] = Car(config_car_now)
+            cars[-1]['id'] = track.add_car(cars[-1], self.view.num_frame)
+            cars[-1]['name'] = "ai_heur_%.3f" % ai.population[cars[-1]['id']]
+            cars[-1]['active'] = True
 
         running = True
         while running:
             self.view.blit(circuit_surface, [0, 0])
             
-            for i in range(len(cars)):
-                if not cars_active[i]:
+            for car in cars:
+                if not car['active']:
                     continue
-                car = cars[i]
-                car_id = cars_id[i]
-                car_ai = cars_ai[i]
 
-                collision = track.collision_car(car)
-                car.update_vision(track)
+                collision = track.collision_car(car['car'])
+                car['car'].update_vision(track)
 
-                car_ai(car)
-                car.apply_movement()
+                car['car'].movement = ai.calc_movement(car['id'], car['car'].vision)
+                car['car'].apply_movement()
 
                 if(collision == CircuitCircle.COLLISION_WALL):
-                    if cars_evals[car_id] == None:
-                        cars_evals[car_id] = \
-                            [track.get_car_perc_sectors(car_id),
-                            track.get_car_num_frames(car_id, self.view.num_frame)]
-                    cars_active[i] = False
+                    ai.set_evaluation(car['id'], {
+                        'perc_of_sectors' : track.get_car_perc_sectors(car['id']),
+                        'amount_frames' : track.get_car_num_frames(car['id'], self.view.num_frame)
+                    })
+                    car['active'] = False
                 elif(collision == CircuitCircle.COLLISION_SLOW_AREA):
-                    car.set_friction_multiplier(track.slow_friction_multiplier)
+                    car['car'].set_friction_multiplier(track.slow_friction_multiplier)
                 else:
-                    car.set_friction_multiplier(1)
+                    car['car'].set_friction_multiplier(1)
                 
-                if track.finished(car_id):
-                    if cars_evals[car_id] == None:
-                        cars_evals[car_id] = \
-                            [1.0,
-                            track.get_car_num_frames(car_id, self.view.num_frame)]
-                    cars_active[i] = False
+                if track.finished(car['id']):
+                    ai.set_evaluation(car['id'], {
+                        'perc_of_sectors' : track.get_car_perc_sectors(car['id']),
+                        'amount_frames' : track.get_car_num_frames(car['id'], self.view.num_frame)
+                    })
+                    car['active'] = False
 
-                car_surface = car.draw()
-                track.update_car_sector(car_id, car)
-                self.view.blit(car_surface, car.get_pos_surface())
+                if car['active']:
+                    car_surface = car['car'].draw()
+                    track.update_car_sector(car['id'], car['car'])
+                    self.view.blit(car_surface, car['car'].get_pos_surface())
 
-            self.view.draw_car_ai_eval(cars_names, cars_evals, [0, 0], True)
+            self.view.draw_car_ai_eval(cars, ai.features, [0, 0], True)
             self.view.update()
+
+            if ai.population_evaluated():
+                if ai.next_generation():
+                    for i in range(num_of_cars):
+                        cars[i]['name'] = "ai_heur_%.3f" % ai.population[cars[i]['id']]
+                        cars[i]['active'] = True
+                        self.reset(cars[i]['car'], cars[i]['id'], track)
+                else:
+                    print("Last generation:")
+                    for i in range(num_of_cars):
+                        print(ai.population[i], ai.features)
+                    running = False
 
             # Events
             for event in pygame.event.get():

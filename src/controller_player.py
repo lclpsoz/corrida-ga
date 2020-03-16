@@ -156,7 +156,7 @@ class ControllerPlayer():
                     "Pressione espaço para continuar!", pygame.font.SysFont('mono', 40, bold=True), (120, 255, 0))
                 self.view.update()
                 if self.wait_key(pygame.K_SPACE):
-                    self.reset(player, player_id, track, self.view.num_frame)
+                    self.reset(player, player_id, track)
                 else:
                     running = False
 

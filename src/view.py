@@ -44,9 +44,15 @@ class View():
             self.draw_text(pos[0], pos[1], control, self.font)
             pos[1] += 20
 
-    def draw_car_ai_eval(self, cars_names, cars_evals, pos : list, sort = False):
+    def draw_car_ai_eval(self, cars, features, pos : list, sort = False):
         """Write information about cars evaluation starting in pos."""
-        prt = [(cars_names[i], cars_evals[i]) for i in range(len(cars_names))]
+        cars_evals = []
+        for feat in features:
+            if feat:
+                cars_evals.append((feat['perc_of_sectors'], feat['amount_frames']))
+            else:
+                cars_evals.append(None)
+        prt = [(cars[i]['name'], cars_evals[i]) for i in range(len(cars))]
         if sort:
             prt.sort(key=lambda x : (-x[1][0], x[1][1]) if x[1] else (1e18, 1e18))
 
@@ -61,6 +67,8 @@ class View():
                 txt, 
                 pygame.font.SysFont('mono', 15, bold=False))
             pos[1] += font_size+4
+            if pos[1] > self.height:
+                return
 
 
     def update(self):
