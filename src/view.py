@@ -85,5 +85,9 @@ class View():
                         self.font)
 
         self.num_frame += 1
+        # pygame.display.update(pygame.Rect((1000, 0), (200, 40)))
         pygame.display.update()
+        # if self.num_frame%60 == 0:
+        #     print("Avr. FPS (last %ds): %4.1f" % (\
+        #                 self.acum_fps_window, self.sum_of_fps/len(self.acum_fps)))
         self.screen.fill((255, 255, 255))            

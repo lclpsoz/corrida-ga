@@ -3,17 +3,14 @@ from controller_player import ControllerPlayer
 from controller_ai import ControllerAI
 from view import View
 import sys
+import json
 
 pygame.init()
 
-config = {  
-    'width' : 1200,
-    'height': 600,
-    'fps' : 60,
-    'acum_fps_window' : 10
-}
+assert(len(sys.argv) > 1)
+config = json.load(open(sys.argv[1]))
 
-if len(sys.argv) > 1 and sys.argv[1] == 'ga':
+if len(sys.argv) > 1 and sys.argv[2] == 'ga':
     game_now = ControllerAI(config)
 else:
     game_now = ControllerPlayer(config)

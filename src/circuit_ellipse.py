@@ -125,11 +125,6 @@ class CircuitEllipse(Circuit):
         inner = (ctypes.c_float * len(self.inner))(*self.inner)
         return collisions_wrapper.col_circuit_ellipse(x, y, center, outter, inner,
                                                         self.wall, self.slow_area, n)
-        
-
-        # float *col_circuit_ellipse(float *x, float *y, float *center, float *outter,
-        #                             float *inner, float wall, float slow_area, int n) {
-
 
     def cur_sector(self, point):
         """Returns the sector of a point"""

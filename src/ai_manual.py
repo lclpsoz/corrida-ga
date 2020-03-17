@@ -1,13 +1,16 @@
 from ai import AI
 import random
+import time
 
 class AIManual(AI):
-    def __init__(self, population_size, num_generations):
-        super(AIManual, self).__init__(population_size)
-        self.population = [random.random() for x in range(population_size)]
-        self.num_generations = num_generations
+    def __init__(self, config):
+        super(AIManual, self).__init__(config['population_size'])
+        self.population = [random.random() for x in range(config['population_size'])]
+        self.num_generations = config['num_of_generations']
         self.generation = 0
-        self.else_moves = [[0, 0] for x in range(population_size)]
+        self.else_moves = [[0, 0] for x in range(config['population_size'])]
+        self.verbose = config['verbose']
+        self.t_gen_start = time.time()
 
     def calc_movement(self, car_id, vision):
         """Based on car with car_id AI and it vision at the moment,
@@ -50,6 +53,15 @@ class AIManual(AI):
         generates next generation."""
         self.generation += 1
         if self.generation == self.num_generations:
+            if self.verbose > 0:
+                print("Generation %d. Previous in %.2f s" % (self.generation, time.time() - self.t_gen_start))
+            if self.verbose > 1:
+                print("Last generation:")
+                for i in range(len(self.population)):
+                    print(self.population[i], self.features[i])
+            if self.verbose > 0:
+                print("")
+
             return False
         old_population = []
         for i in range(self.population_size):
@@ -65,13 +77,17 @@ class AIManual(AI):
         for i in range(int(0.2*self.population_size)):
             mini = min(mini, old_population[i][0])
             maxi = max(maxi, old_population[i][0])
-        print("Generation", self.generation)
-        print("\tBest 20%%: [%.5f, %.5f]" % (mini, maxi))
-        print(old_population)
-        print("")
+        if self.verbose > 0:
+            print("Generation %d. Previous in %.2f s" % (self.generation, time.time() - self.t_gen_start))
+            print("\tBest 20%%: [%.5f, %.5f]" % (mini, maxi))
+        if self.verbose > 1:
+            print(old_population)
+        if self.verbose > 0:
+            print("")
         mini = max(0.0, mini-(random.random()*(0.1/self.population_size)))
         maxi = min(1.0, maxi+(random.random()*(0.1/self.population_size)))
         self.population = [random.uniform(mini, maxi) for x in range(self.population_size-1)]
         self.population.append(old_population[0][0]) # The best from the previous generation
+        self.t_gen_start = time.time()
 
         return True

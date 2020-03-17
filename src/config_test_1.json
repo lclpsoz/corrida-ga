@@ -1,0 +1,10 @@
+{  
+    "width" : 1200,
+    "height": 600,
+    "fps" : 240,
+    "acum_fps_window" : 120,
+    "population_size" : 20,
+    "num_of_generations" : 2,
+    "verbose" : 1,
+    "track" : "ellipse"
+}

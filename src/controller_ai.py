@@ -78,8 +78,7 @@ class ControllerAI():
             'height' : self.config['height']
         }
 
-        opt = input("0 for Circle Circuit or 1 for Ellipse Circuit: ")
-        if opt == '0':
+        if self.config['track'] == 'circle':
             track = CircuitCircle(config_circuit_circle)
         else:
             track = CircuitEllipse(config_circuit_ellipse)
@@ -98,8 +97,8 @@ class ControllerAI():
             'front_color' : (0, 255, 255)
         }
 
-        num_of_cars = 50
-        ai = AIManual(num_of_cars, 20)
+        num_of_cars = self.config['population_size']
+        ai = AIManual(self.config)
         
         cars = []
         cars_colors = random.sample(pygame.color.THECOLORS.items(), k=num_of_cars)
@@ -172,9 +171,6 @@ class ControllerAI():
                         cars[i]['active'] = True
                         self.reset(cars[i]['car'], cars[i]['id'], track)
                 else:
-                    print("Last generation:")
-                    for i in range(num_of_cars):
-                        print(ai.population[i], ai.features[i])
                     running = False
 
             # Events
