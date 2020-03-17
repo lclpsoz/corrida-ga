@@ -6,6 +6,7 @@ from shapely import affinity
 from shapely.geometry import LineString
 from shapely.geometry.polygon import Polygon
 from circuit import Circuit
+from copy import deepcopy
 
 class Car():
     MOVE_FORWARD = 0
@@ -17,12 +18,19 @@ class Car():
         anti-clockwise."""
         self.config = config
         if config['number_of_visions'] < 3:
+            print("number_of_visions < 3.")
+            exit(0)
+        self.amount_graphics = config['amount_graphics']
+        if 360%self.amount_graphics:
+            print("360%amount_graphics != 0")
             exit(0)
         self.frame_time = 1/config['fps']
         self.car_width = config['car_width']
         self.car_height = config['car_height']
 
         self.set_default_settings()
+        self.generate_car_graphics()
+        self.update_car_angle()
 
     def set_default_settings(self):
         config = self.config
@@ -46,11 +54,22 @@ class Car():
         # Acceleration in amount of pixels per iteration
         self.acc_pixels = 0.1
 
-        surface_side = 1.4*max(max(config['car_width'], config['car_height']), 2*config['vision_length'])
-        self.center = [round(surface_side/2), round(surface_side/2)]
+        self.surface_side = 1.4*max(max(config['car_width'], config['car_height']), 2*config['vision_length'])
+        self.center = [round(self.surface_side/2), round(self.surface_side/2)]
         self.x -= self.center[0]
         self.y -= self.center[1]
 
+        # -start_angle because start_angle is anti-clockwise.
+        self.direction = self.rotate_point_degree((0, 0), self.direction, -config['start_angle'])
+
+        self.movement = [False, False, False, False] # Forward, Backward, Left, Right
+
+    def reset(self):
+        """Resets car to default configurations."""
+        self.set_default_settings()
+        self.update_car_angle()
+
+    def generate_car_graphics(self):
         self.car_structure = [  (self.center[0] - self.car_width/2, self.center[1] - self.car_height/2),
                                 (self.center[0] + self.car_width/2, self.center[1] - self.car_height/2),
                                 (self.center[0] + self.car_width/2, self.center[1] + self.car_height/2),
@@ -62,34 +81,32 @@ class Car():
 
         # Car Vision
         self.car_seg_vision = []
-        self.vision_angles = np.linspace(-90, 90, config['number_of_visions'])
-        self.vision = [False for x in range(config['number_of_visions'])] # False, no collision
-        self.car_vision_colors = config['car_vision_colors']
-        car_seg_vision_base = [self.center[0], self.center[1] + config['vision_length']]
+        self.vision_angles = np.linspace(-90, 90, self.config['number_of_visions'])
+        self.vision = [False for x in range(self.config['number_of_visions'])] # False, no collision
+        self.car_vision_colors = self.config['car_vision_colors']
+        car_seg_vision_base = [self.center[0], self.center[1] + self.config['vision_length']]
         for angle_vision in self.vision_angles:
             self.car_seg_vision.append(self.rotate_point_degree(self.center, car_seg_vision_base, -angle_vision))
 
-        # -90 makes car orientation to East, update_car_angle is clockwise,
-        # -start_angle because start_angle is anti-clockwise.
-        self.update_car_angle(-90 + -config['start_angle'])
-        self.direction = self.rotate_point_degree((0, 0), self.direction, -config['start_angle'])
-
-        # self.car_structure_orientations = self.generate_orientations(self.car_structure, 360)
-        # self.car_front_orientations = self.generate_orientations(self.car_front, 360)
-
-        self.movement = [False, False, False, False] # Forward, Backward, Left, Right
+        # -90 makes car orientation to East, update_car_angle_exact is clockwise
+        self.update_car_angle_exact(-90)
 
         # Start PyGame surface for the car
-        self.surface = pygame.Surface((round(surface_side), round(surface_side)))
+        self.surface = pygame.Surface((round(self.surface_side), round(self.surface_side)))
         self.surface.set_colorkey((0, 255, 0))
         self.surface.fill((0, 255, 0))
+        self.ori_car_structure = []
+        self.ori_car_front = []
+        self.ori_car_seg_vision = []
+        self.generate_orientations(self.amount_graphics)
 
-    def reset(self):
-        """Resets car to default configurations."""
-        self.set_default_settings()
-
-    # def generate_orientations(self, base, amount):
-    #     pass
+    def generate_orientations(self, amount):
+        """Generate orientations based on the amount of samples from 360 degress."""
+        for x in range(0, 360 + 1, 360//amount):
+            self.ori_car_structure.append(deepcopy(self.car_structure))
+            self.ori_car_front.append(deepcopy(self.car_front))
+            self.ori_car_seg_vision.append(deepcopy(self.car_seg_vision))
+            self.update_car_angle_exact(-360//amount)
 
     def apply_turn(self):
         # Apply turn to the car based on list movement
@@ -103,7 +120,7 @@ class Car():
                 turn_angle += turn_angle_intensity
 
         self.direction = self.rotate_point_degree((0, 0), self.direction, turn_angle)
-        self.update_car_angle(turn_angle)
+        self.update_car_angle()
 
     def apply_movement(self):
         # Apply movement to the car based on list movement
@@ -134,7 +151,7 @@ class Car():
         key = pygame.key.get_pressed()
         self.movement = [key[pygame.K_UP], key[pygame.K_DOWN], key[pygame.K_LEFT], key[pygame.K_RIGHT]]
 
-    def update_car_angle(self, angle):
+    def update_car_angle_exact(self, angle):
         """Updates car graphics by the angle parameter in degrees. Rotates
         clockwise"""
         # Car structure
@@ -154,6 +171,15 @@ class Car():
         # Vision
         for i in range(len(self.car_seg_vision)):
             self.car_seg_vision[i] = self.rotate_point_degree(self.center, self.car_seg_vision[i], angle)
+
+    def update_car_angle(self):
+        """Updates car graphics based on the angle of the velocity vector. Rotates
+        clockwise with predetermined precision."""
+        idx = int(round(self.get_angle_degrees()/(360/self.amount_graphics)))
+
+        self.car_structure = self.ori_car_structure[idx]
+        self.car_front = self.ori_car_front[idx]
+        self.car_seg_vision = self.ori_car_seg_vision[idx]
 
     def rotate_point_degree(self, origin, point, angle):
         """

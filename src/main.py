@@ -18,7 +18,7 @@ else:
     print("seed =", seed)
     random.seed(seed)
 
-if len(sys.argv) > 1 and sys.argv[2] == 'ga':
+if len(sys.argv) > 2 and sys.argv[2] == 'ga':
     game_now = ControllerAI(config)
 else:
     game_now = ControllerPlayer(config)

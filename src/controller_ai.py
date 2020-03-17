@@ -91,12 +91,11 @@ class ControllerAI():
             'car_width' : 8,
             'car_height' : 16,
             'car_color' : (0, 0, 255),
-            'front_color' : (0, 255, 255)
+            'front_color' : (0, 255, 255),
+            'amount_graphics' : 360
         }
 
-        num_of_cars = self.config['population_size']
-        ai = AIManual(self.config)
-        
+        num_of_cars = self.config['population_size']        
         cars = []
         cars_colors = random.sample(pygame.color.THECOLORS.items(), k=num_of_cars)
         while(len(cars) < num_of_cars):
@@ -105,8 +104,11 @@ class ControllerAI():
             cars.append({})
             cars[-1]['car'] = Car(config_car_now)
             cars[-1]['id'] = track.add_car(cars[-1], self.view.num_frame)
-            cars[-1]['name'] = "ai_heur_%.3f" % ai.population[cars[-1]['id']]
             cars[-1]['active'] = True
+
+        ai = AIManual(self.config)
+        for car in cars:
+            car['name'] = "ai_heur_%.3f" % ai.population[car['id']]
 
         running = True
         while running:

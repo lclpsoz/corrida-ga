@@ -92,7 +92,8 @@ class ControllerPlayer():
             'car_width' : 8,
             'car_height' : 16,
             'car_color' : (0, 0, 255),
-            'front_color' : (0, 255, 255)
+            'front_color' : (0, 255, 255),
+            'amount_graphics' : 360
         }
         player = Car(config_car)
         car_controls = Car.get_controls()
