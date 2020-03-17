@@ -4,9 +4,6 @@ from view import View
 from circuit_circle import CircuitCircle
 from circuit_ellipse import CircuitEllipse
 from ai_manual import AIManual
-from shapely.geometry import Point
-from shapely.geometry.polygon import Polygon
-from shapely.geometry import LineString
 import numpy as np
 from datetime import datetime
 from functools import partial
@@ -123,7 +120,7 @@ class ControllerAI():
             # Batch check collision for vision in all cars:
             list_shapes = []
             for car in cars:
-                list_shapes.extend([LineString(line) for line in car['car'].get_points_vision()])
+                list_shapes.extend(car['car'].get_points_vision())
             batch_col = track.batch_collision(list_shapes)
             p_now = 0
             for car in cars:

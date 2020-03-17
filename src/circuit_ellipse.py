@@ -5,6 +5,8 @@ from circuit import Circuit
 import time
 import collisions_wrapper
 import ctypes
+from shapely.geometry import LineString
+from shapely.geometry.polygon import Polygon
 
 class CircuitEllipse(Circuit):
     def __init__(self, config):
@@ -43,8 +45,11 @@ class CircuitEllipse(Circuit):
 
     def collision(self, shape):
         """Returns the type of collision of the shapely shape and the circuit.
-        Can be NONE, SLOW_AREA or WALL."""
-        points = self.get_points_shape(shape)
+        Can be NONE, SLOW_AREA or WALL. Also accept list of points"""
+        if isinstance(shape, (Polygon, LineString)):
+            points = self.get_points_shape(shape)
+        else:
+            points = shape
         c = Circuit.COLLISION_NONE
         for p in points:
             d = math.hypot(self.center[0] - p[0], self.center[1] - p[1])
@@ -96,9 +101,8 @@ class CircuitEllipse(Circuit):
             y = []
             shapes_sizes = []
             for shape in list_shapes:
-                pts = self.get_points_shape(shape)
-                shapes_sizes.append(len(pts))
-                for a, b in pts:
+                shapes_sizes.append(len(shape))
+                for a, b in shape:
                     x.append(a)
                     y.append(b)
             cols_points = self.batch_collision_points(x, y)
