@@ -22,7 +22,12 @@
         "type" : "ga",
         "population_size" : 100,
         "num_of_generations" : 300,
-        "max_frames" : 600
+        "max_frames" : 600,
+        "mutation_chance" : 0.1,
+        "mutation_factor" : 0.1,
+        "proportion_elitism" : 0.1,
+        "proportion_crossover" : 0.8,
+        "proportion_new" : 0.1
     },
     "circuit_ellipse" :
     {

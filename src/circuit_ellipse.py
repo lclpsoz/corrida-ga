@@ -10,10 +10,11 @@ from shapely.geometry.polygon import Polygon
 class CircuitEllipse(Circuit):
     def __init__(self, config):
         super(CircuitEllipse, self).__init__(config['circuit_ellipse'])
-        self.center = [config['width'] // 2, config['height'] // 2]
+        surface_dim = (2*config['width']//3, config['height'])
+        self.center = [surface_dim[0] // 2, surface_dim[1] // 2]
         self.inner = config['circuit_ellipse']['inner']
         self.outter = config['circuit_ellipse']['outter']
-        self.surface = pygame.Surface((config['width'], config['height']))
+        self.surface = pygame.Surface(surface_dim)
         self.start = [self.center[0] - (self.outter[0] + self.inner[0]) // 2,
                                     self.center[1]]
         self.num_of_sectors = 36

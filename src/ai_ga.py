@@ -20,6 +20,13 @@ class AIGA(AI):
         self.t_gen_start = time.time()
         self.fps = config['fps']
         self.max_frames = config['ai']['max_frames']
+        self.mutation_chance = config['ai']['mutation_chance']
+        self.mutation_factor = config['ai']['mutation_factor']
+        self.pop_size_elitism = int(round(config['ai']["proportion_elitism"] * self.population_size))
+        self.pop_size_crossover = int(round(config['ai']["proportion_crossover"] * self.population_size))
+        if self.pop_size_crossover%2:
+            self.pop_size_crossover -= 1
+        self.pop_size_new = self.population_size - self.pop_size_crossover - self.pop_size_elitism
 
     def random_population(self, n):
         """Generate n random individuals."""
@@ -51,6 +58,35 @@ class AIGA(AI):
             self.fitness.append(100*feat['perc_of_sectors'] +
                 (self.max_frames - feat['amount_frames'])/self.fps)
 
+    def mutation(self, indv):
+        """Apply mutation to indv in place."""
+        for j in range(self.gene_amnt):
+            for k in range(self.gene_size):
+                if random.random() < self.mutation_chance:
+                    indv[j][k] += random.uniform(-self.mutation_factor, self.mutation_factor)
+
+    def crossover(self, parent_1, parent_2):
+        """Returns two individuals, result of the crossover."""
+        # Proportion from each parent
+        proportion_vision = random.randint(0, self.gene_size//2)
+        mid_left = (self.gene_size-2)//2 - proportion_vision
+        mid_right = (self.gene_size-1)//2 + proportion_vision
+        dominant_speed = random.randint(0, 1)
+        
+        def apply(p_1, p_2):
+            """Apply crossover."""
+            indv = deepcopy(p_1)
+            for i in range(self.gene_amnt):
+                if not dominant_speed:
+                    indv[i][0] = p_2[i][0]
+                for k in range(mid_left+1, mid_right):
+                    indv[i][k] = p_2[i][k]
+
+            return indv
+
+        return [apply(parent_1, parent_2),
+                apply(parent_2, parent_1)]
+
     def next_generation(self):
         """If the number of generation was achieved, returns False, else,
         generates next generation."""
@@ -68,7 +104,8 @@ class AIGA(AI):
             return False
 
         self.calc_fitness()
-        sorted_by_fitness = sorted(zip(self.fitness, self.features, self.population))
+        sorted_by_fitness = list(zip(self.fitness, self.features, self.population))
+        sorted_by_fitness.sort(key=lambda x : (x[0], x[2]))
         if self.verbose > 0:
             print("Generation %d. Previous in %.2f s" % (self.generation, time.time() - self.t_gen_start))
             print("\tTOP 5% fitness:", ["%.2f, (%.2f, %.2f)" % (i[0], i[1]['perc_of_sectors'], i[1]['amount_frames']) for i in [(x,y) for x, y, _ in sorted_by_fitness][-int(self.population_size*0.05):]][::-1])
@@ -80,16 +117,15 @@ class AIGA(AI):
                 print(self.population[i], self.features[i], self.fitness[i])
         if self.verbose > 0:
             print("")
-        pop_elitism = deepcopy([x for _,_,x in sorted_by_fitness][-int(self.population_size*0.1):])
-        pop_best_from_bef = deepcopy(random.choices(self.population, self.fitness, k=int(self.population_size*0.3)))
-        pop_mutation = deepcopy(random.choices(self.population, self.fitness, k=int(self.population_size*0.3)))
-        for i in range(len(pop_mutation)):
-            for j in range(self.gene_amnt):
-                for k in range(self.gene_size):
-                    if random.random() < 0.1:
-                        pop_mutation[i][j][k] += random.uniform(-0.1, 0.1) 
-        pop_new = self.random_population(self.population_size - len(pop_elitism) - len(pop_best_from_bef) - len(pop_mutation))
-        self.population = pop_elitism + pop_best_from_bef + pop_mutation + pop_new
+
+        pop_elitism = deepcopy([x for _,_,x in sorted_by_fitness][-self.pop_size_elitism:])
+        pop_crossover = []
+        for i in range(0, self.pop_size_crossover, 2):
+            parent_1, parent_2 = random.choices(self.population, self.fitness, k=2)
+            pop_crossover.extend(self.crossover(parent_1, parent_2))
+        pop_new = self.random_population(self.pop_size_new)
+
+        self.population = pop_elitism + pop_crossover + pop_new
         self.fitness = None
         self.evaluated = 0
         self.t_gen_start = time.time()
