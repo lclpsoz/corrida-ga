@@ -9,8 +9,8 @@ class AI(metaclass=ABCMeta):
         self.population = None
 
     @abstractmethod
-    def calc_movement(self, car_id : int, vision : list):
-        """Based on car with car_id AI and it vision at the moment,
+    def calc_movement(self, car_id : int, vision : list, speed : float):
+        """Based on car with car_id AI, it's vision and speed at the moment,
         returns movement list."""
         pass
 

@@ -4,15 +4,15 @@ import time
 
 class AIManual(AI):
     def __init__(self, config):
-        super(AIManual, self).__init__(config['population_size'])
-        self.population = [random.random() for x in range(config['population_size'])]
-        self.num_generations = config['num_of_generations']
+        super(AIManual, self).__init__(config['ai']['population_size'])
+        self.population = [random.random() for x in range(self.population_size)]
+        self.num_generations = config['ai']['num_of_generations']
         self.generation = 0
-        self.else_moves = [[0, 0] for x in range(config['population_size'])]
+        self.else_moves = [[0, 0] for x in range(self.population_size)]
         self.verbose = config['verbose']
         self.t_gen_start = time.time()
 
-    def calc_movement(self, car_id, vision):
+    def calc_movement(self, car_id, vision, speed):
         """Based on car with car_id AI and it vision at the moment,
         returns movement list."""
         return self.ai_heur(

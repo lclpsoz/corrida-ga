@@ -4,6 +4,7 @@ from view import View
 from circuit_circle import CircuitCircle
 from circuit_ellipse import CircuitEllipse
 from ai_manual import AIManual
+from ai_ga import AIGA
 from datetime import datetime
 from functools import partial
 import random
@@ -79,22 +80,18 @@ class ControllerAI():
         else:
             track = CircuitEllipse(config_circuit_ellipse)
         circuit_surface = track.draw()
-        config_car = {
+        config_car = self.config['car']
+        config_car.update({
             'fps' : self.config['fps'],
             'x' : track.start[0],
             'y' : track.start[1],
             'start_angle' : track.start_angle,
-            'number_of_visions' : 18,
-            'vision_length' : 64,
-            'car_vision_colors' : [(0, 254,0), (255, 0, 0)],
-            'car_width' : 8,
-            'car_height' : 16,
-            'car_color' : (0, 0, 255),
-            'front_color' : (0, 255, 255),
-            'amount_graphics' : 360
-        }
+            "car_vision_colors" : [(0, 254,0), (255, 0, 0)],
+            "car_color" : (0, 0, 255),
+            "front_color" : (0, 255, 255)
+        })
 
-        num_of_cars = self.config['population_size']        
+        num_of_cars = self.config['ai']['population_size']        
         cars = []
         cars_colors = random.sample(pygame.color.THECOLORS.items(), k=num_of_cars)
         while(len(cars) < num_of_cars):
@@ -105,9 +102,12 @@ class ControllerAI():
             cars[-1]['id'] = track.add_car(cars[-1], self.view.num_frame)
             cars[-1]['active'] = True
 
-        ai = AIManual(self.config)
+        if self.config['ai']['type'] == 'ga':
+            ai = AIGA(self.config)
+        else:
+            ai = AIManual(self.config)
         for car in cars:
-            car['name'] = "ai_heur_%.3f" % ai.population[car['id']]
+            car['name'] = "ai_%d" % car['id']
 
         running = True
         while running:
@@ -133,7 +133,7 @@ class ControllerAI():
                 if not car['active']:
                     continue
 
-                car['car'].movement = ai.calc_movement(car['id'], car['car'].vision)
+                car['car'].movement = ai.calc_movement(car['id'], car['car'].vision, car['car'].get_speed())
                 car['car'].apply_movement()
 
                 if(car['collision'] == CircuitCircle.COLLISION_WALL):
@@ -147,7 +147,10 @@ class ControllerAI():
                 else:
                     car['car'].set_friction_multiplier(1)
                 
-                if track.finished(car['id']):
+                if track.finished(car['id']) or \
+                        (car['active'] and \
+                            track.get_car_num_frames(car['id'], self.view.num_frame) == \
+                                self.config['ai']['max_frames']):
                     ai.set_evaluation(car['id'], {
                         'perc_of_sectors' : track.get_car_perc_sectors(car['id']),
                         'amount_frames' : track.get_car_num_frames(car['id'], self.view.num_frame)
@@ -164,8 +167,9 @@ class ControllerAI():
 
             if ai.population_evaluated():
                 if ai.next_generation():
+                    self.view.num_frame_now = 0
                     for i in range(num_of_cars):
-                        cars[i]['name'] = "ai_heur_%.3f" % ai.population[cars[i]['id']]
+                        cars[i]['name'] = "ai_%d" % cars[i]['id']
                         cars[i]['active'] = True
                         self.reset(cars[i]['car'], cars[i]['id'], track)
                 else:

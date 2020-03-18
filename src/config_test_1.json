@@ -1,11 +1,24 @@
-{
-    "seed" : 763774618976614,
+{  
+    "seed" : 2550690257394217,
     "width" : 1200,
     "height": 600,
     "fps" : 240,
     "acum_fps_window" : 120,
-    "population_size" : 20,
-    "num_of_generations" : 2,
     "verbose" : 1,
-    "track" : "ellipse"
+    "track" : "ellipse",
+    "car" :
+    {
+        "number_of_visions" : 18,
+        "vision_length" : 64,
+        "car_width" : 8,
+        "car_height" : 16,
+        "amount_graphics" : 360
+    },
+    "ai" :
+    {
+        "type" : "ga",
+        "population_size" : 20,
+        "num_of_generations" : 10,
+        "max_frames" : 600
+    }
 }

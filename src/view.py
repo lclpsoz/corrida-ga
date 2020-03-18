@@ -4,6 +4,7 @@ from collections import deque
 
 class View():
     def __init__(self, config):
+        self.config = config
         self.width = config['width']
         self.height = config['height']
         self.fps = config['fps']
@@ -14,6 +15,7 @@ class View():
         self.clock = pygame.time.Clock()
 
         self.num_frame = 0
+        self.num_frame_now = 0
 
         self.sum_of_fps = 0
         self.acum_fps = deque()
@@ -83,11 +85,15 @@ class View():
         self.draw_text(self.width-343, 20, "Avr. FPS (last %ds): %4.1f" % (
                         self.acum_fps_window, self.sum_of_fps/len(self.acum_fps)), 
                         self.font)
+        self.draw_text(self.width-343, 40, "Num of frames: %4d|%8d" % (self.num_frame_now, self.num_frame), 
+                        self.font)
+
 
         self.num_frame += 1
+        self.num_frame_now += 1
         # pygame.display.update(pygame.Rect((1000, 0), (200, 40)))
         pygame.display.update()
         # if self.num_frame%60 == 0:
         #     print("Avr. FPS (last %ds): %4.1f" % (\
         #                 self.acum_fps_window, self.sum_of_fps/len(self.acum_fps)))
-        self.screen.fill((255, 255, 255))            
+        self.screen.fill((255, 255, 255))
