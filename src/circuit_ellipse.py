@@ -1,6 +1,5 @@
 import pygame
 import math
-import numpy as np
 from circuit import Circuit
 import time
 import collisions_wrapper
@@ -10,13 +9,13 @@ from shapely.geometry.polygon import Polygon
 
 class CircuitEllipse(Circuit):
     def __init__(self, config):
-        super(CircuitEllipse, self).__init__(config)
-        self.center = np.asarray(config['center'])
-        self.inner = config['inner']
-        self.outter = config['outter']
+        super(CircuitEllipse, self).__init__(config['circuit_ellipse'])
+        self.center = [config['width'] // 2, config['height'] // 2]
+        self.inner = config['circuit_ellipse']['inner']
+        self.outter = config['circuit_ellipse']['outter']
         self.surface = pygame.Surface((config['width'], config['height']))
-        self.start = np.asarray([self.center[0] - (self.outter[0] + self.inner[0]) // 2,
-                                    self.center[1]])
+        self.start = [self.center[0] - (self.outter[0] + self.inner[0]) // 2,
+                                    self.center[1]]
         self.num_of_sectors = 36
     
     def draw(self):

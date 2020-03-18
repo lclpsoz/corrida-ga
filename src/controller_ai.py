@@ -51,44 +51,18 @@ class ControllerAI():
 
     def run(self):
         """Run project."""
-        config_circuit_ellipse = {
-            'center' : [self.config['width'] // 2, self.config['height'] // 2],
-            'inner' : [150, 80],
-            'outter' : [250, 170],
-            'slow_area' : 20, 
-            'wall' : 2,
-            'slow_multiplier' : 10,
-            'start_angle' : 90,
-            'width' : self.config['width'],
-            'height' : self.config['width']
-        }
-
-        config_circuit_circle = {
-            'center' : [self.config['width'] // 2, self.config['height'] // 2],
-            'inner_circle' : 150,
-            'outter_circle' : 250, 
-            'slow_area' : 20, 
-            'wall' : 2,
-            'slow_multiplier' : 10, 
-            'start_angle' : 90,
-            'width' : self.config['width'],
-            'height' : self.config['height']
-        }
-
         if self.config['track'] == 'circle':
-            track = CircuitCircle(config_circuit_circle)
+            track = CircuitCircle(self.config)
         else:
-            track = CircuitEllipse(config_circuit_ellipse)
+            track = CircuitEllipse(self.config)
         circuit_surface = track.draw()
+
         config_car = self.config['car']
         config_car.update({
             'fps' : self.config['fps'],
             'x' : track.start[0],
             'y' : track.start[1],
             'start_angle' : track.start_angle,
-            "car_vision_colors" : [(0, 254,0), (255, 0, 0)],
-            "car_color" : (0, 0, 255),
-            "front_color" : (0, 255, 255)
         })
 
         num_of_cars = self.config['ai']['population_size']        

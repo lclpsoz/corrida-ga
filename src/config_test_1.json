@@ -12,7 +12,10 @@
         "vision_length" : 64,
         "car_width" : 8,
         "car_height" : 16,
-        "amount_graphics" : 360
+        "amount_graphics" : 360,
+        "car_vision_colors" : [[0, 254, 0], [255, 0, 0]],
+        "car_color" : [0, 0, 255],
+        "front_color" : [0, 255, 255]
     },
     "ai" :
     {
@@ -20,5 +23,23 @@
         "population_size" : 20,
         "num_of_generations" : 10,
         "max_frames" : 600
+    },
+    "circuit_ellipse" :
+    {
+        "inner" : [150, 80],
+        "outter" : [250, 170],
+        "slow_area" : 20, 
+        "wall" : 2,
+        "slow_multiplier" : 10,
+        "start_angle" : 90
+    },
+    "circuit_circle" :
+    {
+        "inner_circle" : 150,
+        "outter_circle" : 250, 
+        "slow_area" : 20, 
+        "wall" : 2,
+        "slow_multiplier" : 10, 
+        "start_angle" : 90
     }
 }

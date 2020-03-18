@@ -1,18 +1,19 @@
 import pygame
 import math
-import numpy as np
 from circuit import Circuit
+from shapely.geometry.polygon import Polygon
+from shapely.geometry import LineString
 import time
 
 class CircuitCircle(Circuit):
     def __init__(self, config):
-        super(CircuitCircle, self).__init__(config)
-        self.center = np.asarray(config['center'])
-        self.inner_circle = config['inner_circle']
-        self.outter_circle = config['outter_circle']
+        super(CircuitCircle, self).__init__(config['circuit_circle'])
+        self.center = [config['width'] // 2, config['height'] // 2]
+        self.inner_circle = config['circuit_circle']['inner_circle']
+        self.outter_circle = config['circuit_circle']['outter_circle']
         self.surface = pygame.Surface((config['width'], config['height']))
-        self.start = np.asarray([self.center[0] - (self.outter_circle + self.inner_circle) // 2,
-                                    self.center[1]])
+        self.start = [self.center[0] - (self.outter_circle + self.inner_circle) // 2,
+                                    self.center[1]]
         self.num_of_sectors = 36
     
     def draw(self):
@@ -36,7 +37,10 @@ class CircuitCircle(Circuit):
     def collision(self, shape):
         """Returns the type of collision of the shapely shape and the circuit.
         Can be NONE, SLOW_AREA or WALL."""
-        points = self.get_points_shape(shape)
+        if isinstance(shape, (Polygon, LineString)):
+            points = self.get_points_shape(shape)
+        else:
+            points = shape
         c = Circuit.COLLISION_NONE
         for p in points:
             d = math.hypot(self.center[0] - p[0], self.center[1] - p[1])
