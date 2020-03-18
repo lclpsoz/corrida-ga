@@ -104,7 +104,8 @@ class AIGA(AI):
             return False
 
         self.calc_fitness()
-        sorted_by_fitness = sorted(zip(self.fitness, self.features, self.population))
+        sorted_by_fitness = list(zip(self.fitness, self.features, self.population))
+        sorted_by_fitness.sort(key=lambda x : (x[0], x[2]))
         if self.verbose > 0:
             print("Generation %d. Previous in %.2f s" % (self.generation, time.time() - self.t_gen_start))
             print("\tTOP 5% fitness:", ["%.2f, (%.2f, %.2f)" % (i[0], i[1]['perc_of_sectors'], i[1]['amount_frames']) for i in [(x,y) for x, y, _ in sorted_by_fitness][-int(self.population_size*0.05):]][::-1])
