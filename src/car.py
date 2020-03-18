@@ -218,6 +218,7 @@ class Car():
         segment."""
         cx, cy = self.center
         for i in range(len(self.car_seg_vision)):
+            x, y = self.car_seg_vision[i]
             line = LineString( [[self.x + cx, self.y + cy],
                                 [self.x + x, self.y + y]])
             self.vision[i] = track.collision(line) == Circuit.COLLISION_WALL
