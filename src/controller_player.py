@@ -95,12 +95,11 @@ class ControllerPlayer():
         if self.config['track'] == "custom":
             track = self.run_circuit_maker()
         elif self.config['track'] == "circle":
-        if self.config['track'] == 'circle':
             track = CircuitCircle(self.config)
         else:
             track = CircuitEllipse(self.config)
 
-        return #Comentar para rodar o jogo normal (so faça isso se nao for custom)
+        # return #Comentar para rodar o jogo normal (so faça isso se nao for custom)
 
         circuit_surface = track.draw()
 
