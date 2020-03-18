@@ -54,12 +54,12 @@ class ControllerPlayer():
         running = True
         container = 0
         while running:
-            self.view.blit(maker.draw(), [0, 0])
-            self.view.draw_text(0, 0, "Aperte Espaço quando acabar essa parede",
+            self.view.blit(maker.draw(), [self.config['width']//3,0])
+            self.view.draw_text(0, 100, "Aperte Espaço quando acabar",
                 pygame.font.SysFont('mono', 20, bold=True), (255, 0, 0))
-            self.view.draw_text(0, 40, "Parede1: " + str(len(maker.track_points[0])),
+            self.view.draw_text(0, 120, "Parede1: " + str(len(maker.track_points[0])),
                 pygame.font.SysFont('mono', 20, bold=True), (255, 150, 0))
-            self.view.draw_text(0, 80, "Parede2: " + str(len(maker.track_points[1])),
+            self.view.draw_text(0, 140, "Parede2: " + str(len(maker.track_points[1])),
                 pygame.font.SysFont('mono', 20, bold=True), (255, 150, 0))
 
             for event in pygame.event.get():
@@ -80,8 +80,9 @@ class ControllerPlayer():
                     mouse = pygame.mouse.get_pressed()
                     if mouse[0] == 1:
                         pos = pygame.mouse.get_pos()
-                        maker.add_point(pos[0], pos[1], container)
-                        # time.sleep(50/1000) #Multiplos Cliques??
+                        if(pos[0] - self.config['width']//3 >= 0):
+                            maker.add_point(pos[0] - self.config['width']//3, pos[1], container)
+                            # time.sleep(50/1000) #Multiplos Cliques??
 
             self.view.update()
 
@@ -92,6 +93,7 @@ class ControllerPlayer():
         """Run project."""
 
         x_track_offset = self.config['width']//3
+
         if self.config['track'] == "custom":
             track = self.run_circuit_maker()
         elif self.config['track'] == "circle":
@@ -99,7 +101,7 @@ class ControllerPlayer():
         else:
             track = CircuitEllipse(self.config)
 
-        # return #Comentar para rodar o jogo normal (so faça isso se nao for custom)
+        return #Comentar para rodar o jogo normal (so faça isso se nao for custom)
 
         circuit_surface = track.draw()
 
