@@ -5,7 +5,7 @@
     "fps" : 240,
     "acum_fps_window" : 120,
     "verbose" : 1,
-    "track" : "ellipse",
+    "track" : "custom",
     "car" :
     {
         "number_of_visions" : 18,

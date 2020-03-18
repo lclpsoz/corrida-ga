@@ -3,6 +3,7 @@ from car import Car
 from view import View
 from circuit_circle import CircuitCircle
 from circuit_ellipse import CircuitEllipse
+from circuit_maker import CircuitMaker
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 import numpy as np
@@ -35,9 +36,8 @@ class ControllerPlayer():
             for event in pygame.event.get():
                 if self.is_exit(event):
                     return False
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                if event.type == pygame.KEYDOWN and event.key == key:
                     return True
-
 
     def is_exit(self, event):
         """Check if event is a exit event."""
@@ -48,13 +48,58 @@ class ControllerPlayer():
                 return True
         return False
 
+    def run_circuit_maker(self):
+        maker = CircuitMaker(self.config)
+         
+        running = True
+        container = 0
+        while running:
+            self.view.blit(maker.draw(), [0, 0])
+            self.view.draw_text(0, 0, "Aperte Espaço quando acabar essa parede",
+                pygame.font.SysFont('mono', 20, bold=True), (255, 0, 0))
+            self.view.draw_text(0, 40, "Parede1: " + str(len(maker.track_points[0])),
+                pygame.font.SysFont('mono', 20, bold=True), (255, 150, 0))
+            self.view.draw_text(0, 80, "Parede2: " + str(len(maker.track_points[1])),
+                pygame.font.SysFont('mono', 20, bold=True), (255, 150, 0))
+
+            for event in pygame.event.get():
+                if self.is_exit(event):
+                    return False
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                    container += maker.finish(container)
+                    if container == 2: 
+                        running = False
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_BACKSPACE:
+                    if len(maker.track_points[container]) == 0:
+                        container -= 1
+                    if container < 0:
+                        container = 0
+                    else:
+                        maker.remove_last_point(container)
+                else:
+                    mouse = pygame.mouse.get_pressed()
+                    if mouse[0] == 1:
+                        pos = pygame.mouse.get_pos()
+                        maker.add_point(pos[0], pos[1], container)
+                        # time.sleep(50/1000) #Multiplos Cliques??
+
+            self.view.update()
+
+        return True
+        return maker.get_circuit()
+
     def run(self):
         """Run project."""
-        opt = input("0 for Circle Circuit or 1 for Ellipse Circuit: ")
-        if opt == '0':
+
+        if self.config['track'] == "custom":
+            track = self.run_circuit_maker()
+        elif self.config['track'] == "circle":
             track = CircuitCircle(self.config)
         else:
             track = CircuitEllipse(self.config)
+
+        return #Comentar para rodar o jogo normal (so faça isso se nao for custom)
+
         circuit_surface = track.draw()
 
         config_car = self.config['car']
