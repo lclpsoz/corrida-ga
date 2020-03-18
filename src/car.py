@@ -48,7 +48,7 @@ class Car():
         self.friction_multiplier = 1
         # self.friction_turn_loss_percentage = 0.000
         # Direction is stored as a unit vector
-        self.direction = np.asarray([1, 0])
+        self.direction = [1, 0]
         # Delta per iteration in amount of pixels
         self.delta_pixels = 0  
         # Acceleration in amount of pixels per iteration
@@ -200,7 +200,7 @@ class Car():
 
         qx = ox + math.cos(angle) * (px - ox) - math.sin(angle) * (py - oy)
         qy = oy + math.sin(angle) * (px - ox) + math.cos(angle) * (py - oy)
-        return np.asarray([qx, qy])
+        return [qx, qy]
 
     def vector_magnitude_sum(self, vector, scalar):
         """Sum scalar value to vector magnitude."""
@@ -216,9 +216,10 @@ class Car():
     def update_vision(self, track):
         """Updates list vision, checking for collision with each vision
         segment."""
+        cx, cy = self.center
         for i in range(len(self.car_seg_vision)):
-            line = LineString([np.array(self.center) + np.array([self.x, self.y]),
-                                np.array(self.car_seg_vision[i]) + np.array([self.x, self.y])])
+            line = LineString( [[self.x + cx, self.y + cy],
+                                [self.x + x, self.y + y]])
             self.vision[i] = track.collision(line) == Circuit.COLLISION_WALL
 
     def draw(self):
@@ -239,24 +240,26 @@ class Car():
         return [round(self.x), round(self.y)]
 
     def get_pos(self):
-        """Return position of the center of the car as a np array."""
-        # return np.array([round(self.x), round(self.y)], dtype=np.int) + np.array(self.center, dtype=np.int)
-        return np.array(self.get_pos_surface()) + np.array(self.center)
+        """Return position of the center of the car as a list."""
+        cx, cy = self.center
+        x, y = self.get_pos_surface()
+        return [cx + x, cy + y]
 
     def get_points(self):
-        """Returns position of each point of the car as a list of np array."""
+        """Returns position of each point of the car as a list of lists."""
         ret = []
-        for pt in self.car_structure:
-            ret.append(np.array([self.x, self.y]) + np.array(pt))
+        for x, y in self.car_structure:
+            ret.append([self.x + x, self.y + y])
 
         return ret
 
     def get_points_vision(self):
-        """Returns list with vision segments as np arrays."""
+        """Returns list with vision segments as lists."""
         list_vision = []
-        for seg_vis in self.car_seg_vision:
-            list_vision.append([np.array(self.center) + np.array([self.x, self.y]),
-                                np.array(seg_vis) + np.array([self.x, self.y])])
+        cx, cy = self.center
+        for x, y in self.car_seg_vision:
+            list_vision.append([[self.x + cx, self.y + cy],
+                                [self.x + x, self.y + y]])
         return list_vision
 
     def get_speed_squared(self):

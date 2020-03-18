@@ -4,7 +4,6 @@ from view import View
 from circuit_circle import CircuitCircle
 from circuit_ellipse import CircuitEllipse
 from ai_manual import AIManual
-import numpy as np
 from datetime import datetime
 from functools import partial
 import random
