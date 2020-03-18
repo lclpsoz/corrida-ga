@@ -8,10 +8,11 @@ import time
 class CircuitCircle(Circuit):
     def __init__(self, config):
         super(CircuitCircle, self).__init__(config['circuit_circle'])
-        self.center = [config['width'] // 2, config['height'] // 2]
+        surface_dim = (2*config['width']//3, config['height'])
+        self.center = [surface_dim[0] // 2, surface_dim[1] // 2]
         self.inner_circle = config['circuit_circle']['inner_circle']
         self.outter_circle = config['circuit_circle']['outter_circle']
-        self.surface = pygame.Surface((config['width'], config['height']))
+        self.surface = pygame.Surface(surface_dim)
         self.start = [self.center[0] - (self.outter_circle + self.inner_circle) // 2,
                                     self.center[1]]
         self.num_of_sectors = 36

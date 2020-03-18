@@ -50,6 +50,7 @@ class ControllerPlayer():
 
     def run(self):
         """Run project."""
+        x_track_offset = self.config['width']//3
         if self.config['track'] == 'circle':
             track = CircuitCircle(self.config)
         else:
@@ -59,7 +60,7 @@ class ControllerPlayer():
         config_car = self.config['car']
         config_car.update({
             'fps' : self.config['fps'],
-            'x' : track.start[0],
+            'x' : x_track_offset + track.start[0],
             'y' : track.start[1],
             'start_angle' : track.start_angle,
         })
@@ -70,7 +71,7 @@ class ControllerPlayer():
         
         running = True
         while running:
-            self.view.blit(circuit_surface, [0, 0])
+            self.view.blit(circuit_surface, [x_track_offset, 0])
             
             # Check for collision
             collision = track.collision_car(player)

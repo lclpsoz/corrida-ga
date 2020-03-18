@@ -76,23 +76,24 @@ class View():
     def update(self):
         """Updates frame."""
         self.clock.tick(self.fps)
-        self.draw_text(self.width-150, 0, "FPS: %4.1f" % (
-                        self.clock.get_fps()), self.font)
         self.acum_fps.append(self.clock.get_fps())
         self.sum_of_fps += self.clock.get_fps()
         if len(self.acum_fps) > self.fps*self.acum_fps_window:
             self.sum_of_fps -= self.acum_fps.popleft()
-        self.draw_text(self.width-343, 20, "Avr. FPS (last %ds): %4.1f" % (
+
+        self.draw_text(0, 0, "FPS: %4.1f" % (
+                        self.clock.get_fps()), self.font)
+        self.draw_text(0, 20, "Avr. FPS (last %ds): %4.1f" % (
                         self.acum_fps_window, self.sum_of_fps/len(self.acum_fps)), 
                         self.font)
-        self.draw_text(self.width-343, 40, "Num of frames: %4d|%8d" % (self.num_frame_now, self.num_frame), 
+        self.draw_text(0, 40, "Num of frames: %4d|%8d" % (self.num_frame_now, self.num_frame), 
                         self.font)
 
-
+        if self.num_frame%self.fps == 0:
+            pygame.display.update(pygame.Rect((0, 0), (self.width//3 - 1, self.height)))
+        pygame.display.update(pygame.Rect((self.width//3, 0), (2*self.width//3, self.height)))
         self.num_frame += 1
         self.num_frame_now += 1
-        # pygame.display.update(pygame.Rect((1000, 0), (200, 40)))
-        pygame.display.update()
         # if self.num_frame%60 == 0:
         #     print("Avr. FPS (last %ds): %4.1f" % (\
         #                 self.acum_fps_window, self.sum_of_fps/len(self.acum_fps)))
