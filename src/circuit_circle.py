@@ -9,7 +9,8 @@ class CircuitCircle(Circuit):
     def __init__(self, config):
         super(CircuitCircle, self).__init__(config['circuit_circle'])
         surface_dim = (2*config['width']//3, config['height'])
-        self.center = [surface_dim[0] // 2, surface_dim[1] // 2]
+        self.center = [config['width']//3 + surface_dim[0] // 2, surface_dim[1] // 2]
+        self.center_draw = [surface_dim[0] // 2, surface_dim[1] // 2]
         self.inner_circle = config['circuit_circle']['inner_circle']
         self.outter_circle = config['circuit_circle']['outter_circle']
         self.surface = pygame.Surface(surface_dim)
@@ -21,17 +22,17 @@ class CircuitCircle(Circuit):
         """Returns the pygame.Surface with the track drawed"""
         self.surface.set_colorkey((0, 255, 0))
         self.surface.fill((0,255,0))
-        pygame.draw.circle(self.surface, self.color_background, self.center,
+        pygame.draw.circle(self.surface, self.color_background, self.center_draw,
                             self.outter_circle)    
-        pygame.draw.circle(self.surface, self.color_slow_area, self.center,
+        pygame.draw.circle(self.surface, self.color_slow_area, self.center_draw,
                             self.outter_circle - self.wall)
-        pygame.draw.circle(self.surface, self.color_wall, self.center,
+        pygame.draw.circle(self.surface, self.color_wall, self.center_draw,
                             self.outter_circle - self.slow_area - self.wall)    
-        pygame.draw.circle(self.surface, self.color_slow_area, self.center,
+        pygame.draw.circle(self.surface, self.color_slow_area, self.center_draw,
                             self.inner_circle + self.slow_area)    
-        pygame.draw.circle(self.surface, self.color_background, self.center,
+        pygame.draw.circle(self.surface, self.color_background, self.center_draw,
                             self.inner_circle)    
-        pygame.draw.circle(self.surface, self.color_wall, self.center,
+        pygame.draw.circle(self.surface, self.color_wall, self.center_draw,
                             self.inner_circle - self.wall)    
         return self.surface
 

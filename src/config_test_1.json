@@ -3,6 +3,7 @@
     "width" : 1200,
     "height": 600,
     "fps" : 240,
+    "fps_info" : 10,
     "acum_fps_window" : 120,
     "verbose" : 1,
     "track" : "circle",
