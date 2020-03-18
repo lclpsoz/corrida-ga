@@ -4,7 +4,8 @@ from circuit_custom import CircuitCustom
 
 class CircuitMaker(object):
     def __init__(self, config):
-        self.surface = pygame.Surface((config['width'], config['height']))
+        surface_dim = (2*config['width']//3, config['height'])
+        self.surface = pygame.Surface(surface_dim)
         self.track_points = [[],[]]
     
     def add_point(self, x, y, container):
