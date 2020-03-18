@@ -50,8 +50,7 @@ class ControllerPlayer():
 
     def run(self):
         """Run project."""
-        opt = input("0 for Circle Circuit or 1 for Ellipse Circuit: ")
-        if opt == '0':
+        if self.config['track'] == 'circle':
             track = CircuitCircle(self.config)
         else:
             track = CircuitEllipse(self.config)
