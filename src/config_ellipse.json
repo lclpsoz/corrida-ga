@@ -1,0 +1,62 @@
+{  
+    "seed" : 2550690257394217,
+    "EPS" : 0.0001,
+    "width" : 1200,
+    "height": 600,
+    "fps" : 60,
+    "fps_info" : 10,
+    "acum_fps_window" : 120,
+    "verbose" : 1,
+    "track" : "ellipse",
+    "car" :
+    {
+        "number_of_visions" : 18,
+        "vision_length" : 64,
+        "car_width" : 8,
+        "car_height" : 16,
+        "amount_graphics" : 360,
+        "car_vision_colors" : [[0, 254, 0, 80], [255, 0, 0, 80]],
+        "car_color" : [0, 0, 255, 255],
+        "front_color" : [0, 255, 255, 255]
+    },
+    "ai" :
+    {
+        "type" : "ga",
+        "population_size" : 10,
+        "num_of_generations" : 300,
+        "max_frames" : 600,
+        "mutation_chance" : 0.1,
+        "mutation_factor" : 0.1,
+        "proportion_elitism" : 0.1,
+        "proportion_crossover" : 0.7,
+        "proportion_new" : 0.2
+    },
+    "circuit_ellipse" :
+    {
+        "inner" : [150, 80],
+        "outter" : [250, 170],
+        "slow_area" : 20, 
+        "wall" : 2,
+        "slow_multiplier" : 10,
+        "start_angle" : 90
+    },
+    "circuit_circle" :
+    {
+        "inner_circle" : 150,
+        "outter_circle" : 250, 
+        "slow_area" : 20, 
+        "wall" : 2,
+        "slow_multiplier" : 10, 
+        "start_angle" : 90
+    },   
+    "circuit_custom" :
+    {
+        "slow_area" : 0, 
+        "wall" : 2,
+        "slow_multiplier" : 0, 
+        "start_angle" : 90,
+        "outter":  null,
+        "inner":  null,
+        "run_maker": false
+    }
+}

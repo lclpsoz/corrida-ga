@@ -51,6 +51,8 @@ class CircuitMaker(object):
         return self.surface
             
     def get_circuit(self):
+        if not 'circuit_custom' in self.config:
+            self.config['circuit_custom'] = {}
         self.config['circuit_custom']['outter'] = self.track_points[0]
         self.config['circuit_custom']['inner'] = self.track_points[1]
         return CircuitCustom(self.config)

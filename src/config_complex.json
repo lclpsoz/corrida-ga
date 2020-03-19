@@ -3,11 +3,11 @@
     "EPS" : 0.0001,
     "width" : 1200,
     "height": 600,
-    "fps" : 30,
+    "fps" : 60,
     "fps_info" : 10,
     "acum_fps_window" : 120,
     "verbose" : 1,
-    "track" : "ellipse",
+    "track" : "custom",
     "car" :
     {
         "number_of_visions" : 18,
@@ -22,14 +22,14 @@
     "ai" :
     {
         "type" : "ga",
-        "population_size" : 20,
-        "num_of_generations" : 10,
-        "max_frames" : 300,
+        "population_size" : 10,
+        "num_of_generations" : 300,
+        "max_frames" : 600,
         "mutation_chance" : 0.1,
         "mutation_factor" : 0.1,
-        "proportion_elitism" : 0.05,
-        "proportion_crossover" : 0.6,
-        "proportion_new" : 0.35
+        "proportion_elitism" : 0.1,
+        "proportion_crossover" : 0.7,
+        "proportion_new" : 0.2
     },
     "circuit_ellipse" :
     {
@@ -48,7 +48,7 @@
         "wall" : 2,
         "slow_multiplier" : 10, 
         "start_angle" : 90
-    },
+    },   
     "circuit_custom" :
     {
         "slow_area" : 0, 

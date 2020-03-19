@@ -56,6 +56,8 @@ class ControllerAI(Controller):
         x_track_offset = self.config['width']//3
         self.start_track()
         self.start_car()
+        self.view.num_frame = 0
+        self.view.num_frame_now = 0
 
         circuit_surface = self.track.draw()
 
