@@ -113,7 +113,7 @@ class ControllerPlayer():
         config_car = self.config['car']
         config_car.update({
             'fps' : self.config['fps'],
-            'x' : track.start[0],
+            'x' : track.start[0] + x_track_offset,
             'y' : track.start[1],
             'start_angle' : track.start_angle,
         })

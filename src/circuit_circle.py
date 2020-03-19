@@ -14,25 +14,25 @@ class CircuitCircle(Circuit):
         self.inner_circle = config['circuit_circle']['inner_circle']
         self.outter_circle = config['circuit_circle']['outter_circle']
         self.surface = pygame.Surface(surface_dim)
-        self.start = [self.center[0] - (self.outter_circle + self.inner_circle) // 2,
-                                    self.center[1]]
+        self.start = [self.center_draw[0] - (self.outter_circle + self.inner_circle) // 2,
+                                    self.center_draw[1]]
         self.num_of_sectors = 36
     
     def draw(self):
         """Returns the pygame.Surface with the track drawed"""
         self.surface.set_colorkey((0, 255, 0))
         self.surface.fill((0,255,0))
-        pygame.draw.circle(self.surface, self.color_wall, self.center,
+        pygame.draw.circle(self.surface, self.color_wall, self.center_draw,
                             self.outter_circle)    
         pygame.draw.circle(self.surface, self.color_slow_area, self.center_draw,
                             self.outter_circle - self.wall)
-        pygame.draw.circle(self.surface, self.color_background, self.center,
+        pygame.draw.circle(self.surface, self.color_background, self.center_draw,
                             self.outter_circle - self.slow_area - self.wall)    
         pygame.draw.circle(self.surface, self.color_slow_area, self.center_draw,
                             self.inner_circle + self.slow_area)    
-        pygame.draw.circle(self.surface, self.color_wall, self.center,
+        pygame.draw.circle(self.surface, self.color_wall, self.center_draw,
                             self.inner_circle)    
-        pygame.draw.circle(self.surface, self.color_background, self.center,
+        pygame.draw.circle(self.surface, self.color_background, self.center_draw,
                             self.inner_circle - self.wall)    
         return self.surface
 
