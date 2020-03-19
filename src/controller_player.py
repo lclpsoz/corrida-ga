@@ -1,6 +1,7 @@
 import pygame
 from car import Car
 from view import View
+from circuit_custom import CircuitCustom
 from circuit_circle import CircuitCircle
 from circuit_ellipse import CircuitEllipse
 from circuit_maker import CircuitMaker
@@ -53,13 +54,17 @@ class ControllerPlayer():
          
         running = True
         container = 0
+        start = [0,0]
         while running:
             self.view.blit(maker.draw(), [self.config['width']//3,0])
-            self.view.draw_text(0, 100, "Aperte Espaço quando acabar",
+
+            self.view.draw_text(0, 100, "Garanta que as duas paredes tenham a mesma quantidade de pontos",
                 pygame.font.SysFont('mono', 20, bold=True), (255, 0, 0))
-            self.view.draw_text(0, 120, "Parede1: " + str(len(maker.track_points[0])),
+            self.view.draw_text(0, 140, "Aperte Espaço quando acabar uma parede",
+                pygame.font.SysFont('mono', 20, bold=True), (255, 0, 0))
+            self.view.draw_text(0, 180, "Parede1: " + str(len(maker.track_points[0])),
                 pygame.font.SysFont('mono', 20, bold=True), (255, 150, 0))
-            self.view.draw_text(0, 140, "Parede2: " + str(len(maker.track_points[1])),
+            self.view.draw_text(0, 200, "Parede2: " + str(len(maker.track_points[1])),
                 pygame.font.SysFont('mono', 20, bold=True), (255, 150, 0))
 
             for event in pygame.event.get():
@@ -67,7 +72,7 @@ class ControllerPlayer():
                     return False
                 elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                     container += maker.finish(container)
-                    if container == 2: 
+                    if container == 2:
                         running = False
                 elif event.type == pygame.KEYDOWN and event.key == pygame.K_BACKSPACE:
                     if len(maker.track_points[container]) == 0:
@@ -80,14 +85,13 @@ class ControllerPlayer():
                     mouse = pygame.mouse.get_pressed()
                     if mouse[0] == 1:
                         pos = pygame.mouse.get_pos()
-                        if(pos[0] - self.config['width']//3 >= 0):
-                            maker.add_point(pos[0] - self.config['width']//3, pos[1], container)
-                            # time.sleep(50/1000) #Multiplos Cliques??
+                        if pos[0] - self.config['width']//3 >= 0:
+                                maker.add_point(pos[0] - self.config['width']//3, pos[1], container)
+                                # time.sleep(50/1000)
 
             self.view.update()
 
-        return True
-        return maker.get_circuit()
+        return maker.get_circuit(start)
 
     def run(self):
         """Run project."""
@@ -101,14 +105,15 @@ class ControllerPlayer():
         else:
             track = CircuitEllipse(self.config)
 
-        return #Comentar para rodar o jogo normal (so faça isso se nao for custom)
+        if track == False:
+            return
 
         circuit_surface = track.draw()
 
         config_car = self.config['car']
         config_car.update({
             'fps' : self.config['fps'],
-            'x' : track.start[0],
+            'x' : track.start[0] + x_track_offset,
             'y' : track.start[1],
             'start_angle' : track.start_angle,
         })
@@ -116,7 +121,7 @@ class ControllerPlayer():
         car_controls = Car.get_controls()
 
         player_id = track.add_car(player, self.view.num_frame)
-        
+
         running = True
         while running:
             self.view.blit(circuit_surface, [x_track_offset, 0])
@@ -156,9 +161,9 @@ class ControllerPlayer():
             
             # Screen information
             text_pos_top_left = 0
-            self.view.draw_text(0, 200, "Sector: " + str(track.car_current_sector[player_id]),
+            self.view.draw_text(0, 280, "Sector: " + str(track.car_current_sector[player_id]),
                 pygame.font.SysFont('mono', 20, bold=True), (255, 0, 0))
-            self.view.draw_car_controls(player.get_controls(), [0, 0])
+            # self.view.draw_car_controls(player.get_controls(), [0, 0])
             # self.view.draw_player_data(self.get_car_data_str(player), [0, 60])
             
             # tantantan tantantan

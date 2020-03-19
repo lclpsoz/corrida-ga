@@ -6,39 +6,76 @@ import collisions_wrapper
 import ctypes
 from shapely.geometry import LineString
 from shapely.geometry.polygon import Polygon
+from shapely.geometry.point import Point
+import numpy as np
 
 class CircuitCustom(Circuit):
-    def __init__(self, config, track_points):
+    def __init__(self, config, track_points, start):
+        self.config = config
         super(CircuitCustom, self).__init__(config['circuit_custom'])
+        surface_dim = (2*config['width']//3, config['height'])
+        self.surface = pygame.Surface(surface_dim)
+        
         self.track_points = track_points
-        # self.slow_area_height = 20
-        # self.num_of_sectors = 10
-    
-    # def draw(self):
-    #     """Returns the pygame.Surface with the track drawed"""
-    #     return self.surface
+        a, b = track_points
+        self.sectors = [[a[i], b[i]] for i in range(len(a))]
+        self.num_of_sectors = len(self.sectors) - 1
+        self.start = [(self.sectors[self.num_of_sectors - 1][0][0] + self.sectors[self.num_of_sectors - 1][1][0]) // 2,
+            (self.sectors[self.num_of_sectors - 1][0][1] + self.sectors[self.num_of_sectors - 1][1][1]) // 2] 
+        # self.start = [(self.sectors[0][0][0] + self.sectors[0][1][0]) // 2,
+        #     (self.sectors[0][0][1] + self.sectors[0][1][1]) // 2] 
+        
+        self.poly_sector = []
+        last1, last2 = self.sectors[0]
+        for i in range(1, self.num_of_sectors + 1):
+            a, b = self.sectors[i]
+            self.poly_sector.append(Polygon([last1, a, b, last2]))
+            last1 = a
+            last2 = b
 
-    # def collision(self, shape):
-    #     """Returns the type of collision of the shapely shape and the circuit.
-    #     Can be NONE, SLOW_AREA or WALL. Also accept list of points"""
-    #     if isinstance(shape, (Polygon, LineString)):
-    #         points = self.get_points_shape(shape)
-    #     else:
-    #         points = shape
-    #     c = Circuit.COLLISION_NONE
-    #     for p in points:
-    #         d = math.hypot(self.center[0] - p[0], self.center[1] - p[1])
-    #         theta = math.atan2(-(p[1] - self.center[1]), p[0] - self.center[0])
-    #         r1 = self.outter[0] * self.outter[1] / math.sqrt(self.outter[0] * self.outter[0] * math.sin(theta) * math.sin(theta) + 
-    #                             self.outter[1] * self.outter[1] * math.cos(theta) * math.cos(theta))
-    #         r2 = self.inner[0] * self.inner[1] / math.sqrt(self.inner[0] * self.inner[0] * math.sin(theta) * math.sin(theta) + 
-    #                             self.inner[1] * self.inner[1] * math.cos(theta) * math.cos(theta))
-    #         if d >= r1 - self.wall or d <= r2:
-    #             return Circuit.COLLISION_WALL
-    #         elif(d <= r2 + self.slow_area or
-    #             d >= r1 - self.slow_area):
-    #             c = Circuit.COLLISION_SLOW_AREA
-    #     return c
+        self.outter = Polygon(self.track_points[0])
+        self.inner = Polygon(self.track_points[1])
+
+    def draw(self):
+        """Returns the pygame.Surface with the track drawed"""
+        self.surface.set_colorkey((0, 255, 0))
+        self.surface.fill((0,255,0))
+
+        for container in range(0, 2):
+            if len(self.track_points[container]) > 0:
+                last = self.track_points[container][len(self.track_points[container]) - 1]
+                for x, y in self.track_points[container]:
+                    pygame.draw.line(self.surface, self.color_wall, [x, y], last, self.wall)
+                    last = [x, y]
+
+        return self.surface
+
+
+    def sign(self, val):
+        if val < 0:
+            return -1
+        elif val == 0:
+            return 0
+        else:
+            return 1
+
+    def collision(self, shape):
+        """Returns the type of collision of the shapely shape and the circuit.
+        Can be NONE, SLOW_AREA or WALL. Also accept list of points"""
+        if isinstance(shape, (Polygon, LineString)):
+            points = self.get_points_shape(shape)
+        else:
+            points = shape
+        c = Circuit.COLLISION_NONE
+
+        for x, y in points:
+            x -= self.config['width']//3
+
+            if self.inner.contains(Point(x,y)) or not self.outter.contains(Point(x,y)):
+                c = Circuit.COLLISION_WALL            
+
+        return c
+
 
     # def batch_collision_car(self, list_cars):
     #     """Returns a list of types of collisions, each position corresponding
@@ -105,23 +142,25 @@ class CircuitCustom(Circuit):
     #     return collisions_wrapper.col_circuit_ellipse(x, y, center, outter, inner,
     #                                                     self.wall, self.slow_area, n)
 
-    # def cur_sector(self, point):
-    #     """Returns the sector of a point"""
-    #     angle = math.atan2(-(point[1] - self.center[1]), point[0] - self.center[0])
-    #     angle = math.degrees(angle)
-    #     angle = 180 - angle
-    #     if angle < 0:
-    #         angle += 360
-    #     return int(angle // 10)
+    def cur_sector(self, point):
+        """Returns the sector of a point"""
+        id = -1
+        x, y = point
+        x -= self.config['width']//3
+        for i in range(0, self.num_of_sectors):
+            if self.poly_sector[i].contains(Point(x, y)):
+                id = i
+        return id
 
-    # def update_car_sector(self, car_id, player):
-    #     """Updates the sector of the car (maximum sector of all its points)"""
-    #     now = -1
-    #     for p in player.get_points():
-    #         now = max(now, self.cur_sector(p))
 
-    #     if ((self.car_current_sector[car_id] + 1) % self.num_of_sectors == now) and\
-    #             (self.car_sectors[car_id][self.car_current_sector[car_id]] == 1):
-    #         self.car_sectors[car_id][now] = 1
+    def update_car_sector(self, car_id, player):
+        """Updates the sector of the car (maximum sector of all its points)"""
+        now = -1
+        for p in player.get_points():
+            now = max(now, self.cur_sector(p))
 
-    #     self.car_current_sector[car_id] = now
+        if ((self.car_current_sector[car_id] + 1) % self.num_of_sectors == now) and\
+                (self.car_sectors[car_id][self.car_current_sector[car_id]] == 1):
+            self.car_sectors[car_id][now] = 1
+
+        self.car_current_sector[car_id] = now
