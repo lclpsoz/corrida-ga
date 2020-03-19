@@ -2,6 +2,7 @@ from abc import ABCMeta, abstractmethod
 from circuit_maker import CircuitMaker
 from circuit_circle import CircuitCircle
 from circuit_ellipse import CircuitEllipse
+from circuit_custom import CircuitCustom
 import pygame
 import time
 
@@ -14,7 +15,6 @@ class Controller(metaclass=ABCMeta):
          
         running = True
         container = 0
-        start = [0,0]
         lst_click = -1
         while running:
             self.view.blit(maker.draw(), [self.config['width']//3,0])
@@ -52,11 +52,15 @@ class Controller(metaclass=ABCMeta):
 
             self.view.update()
 
-        return maker.get_circuit(start)
+        maker.print_points()
+        return maker.get_circuit()
 
     def start_track(self):
         if self.config['track'] == "custom":
-            self.track = self.run_circuit_maker()
+            if self.config['circuit_custom']['run_maker']:
+                self.track = self.run_circuit_maker()
+            else:    
+                self.track = CircuitCustom(self.config)
         elif self.config['track'] == "circle":
             self.track = CircuitCircle(self.config)
         else:

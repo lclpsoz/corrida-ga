@@ -10,14 +10,14 @@ from shapely.geometry.point import Point
 import numpy as np
 
 class CircuitCustom(Circuit):
-    def __init__(self, config, track_points, start):
+    def __init__(self, config):
         self.config = config
         super(CircuitCustom, self).__init__(config['circuit_custom'])
         surface_dim = (2*config['width']//3, config['height'])
         self.surface = pygame.Surface(surface_dim)
         
-        self.track_points = track_points
-        a, b = track_points
+        self.track_points = [config['circuit_custom']['outter'], config['circuit_custom']['inner']]
+        a, b = self.track_points
         self.sectors = [[a[i], b[i]] for i in range(len(a))]
         self.num_of_sectors = len(self.sectors) - 1
         self.start = [
@@ -26,9 +26,7 @@ class CircuitCustom(Circuit):
                 config['width']//3,
             (self.sectors[self.num_of_sectors - 1][0][1] +
                 self.sectors[self.num_of_sectors - 1][1][1]) // 2
-            ] 
-        # self.start = [(self.sectors[0][0][0] + self.sectors[0][1][0]) // 2,
-        #     (self.sectors[0][0][1] + self.sectors[0][1][1]) // 2] 
+            ]
         
         self.poly_sector = []
         last1, last2 = self.sectors[0]
@@ -141,10 +139,12 @@ class CircuitCustom(Circuit):
     #     n = len(x)
     #     x = (ctypes.c_float * n)(*x)
     #     y = (ctypes.c_float * n)(*y)
-    #     center = (ctypes.c_float * len(self.center))(*self.center)
-    #     outter = (ctypes.c_float * len(self.outter))(*self.outter)
-    #     inner = (ctypes.c_float * len(self.inner))(*self.inner)
-    #     return collisions_wrapper.col_circuit_ellipse(x, y, center, outter, inner,
+    #     outter_x = (ctypes.c_float * len(self.track_points[0]))(*[p[0] for p in self.track_points[0]])
+    #     outter_y = (ctypes.c_float * len(self.track_points[0]))(*[p[1] for p in self.track_points[0]])
+    #     inner_x = (ctypes.c_float * len(self.track_points[1]))(*[p[0] for p in self.track_points[1]])
+    #     inner_y = (ctypes.c_float * len(self.track_points[1]))(*[p[1] for p in self.track_points[1]])
+    #     sector = (ctypes.c_int * n)(*[self.cur_sector([x[i], y[i]]) for i in range(n)])
+    #     return collisions_wrapper.col_circuit_custom(x, y, sector, outter_x, outter_y, inner_x, inner_y,
     #                                                     self.wall, self.slow_area, n)
 
     def cur_sector(self, point):
