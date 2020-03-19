@@ -1,10 +1,10 @@
 import pygame
 from car import Car
 from view import View
+from controller import Controller
 from circuit_custom import CircuitCustom
 from circuit_circle import CircuitCircle
 from circuit_ellipse import CircuitEllipse
-from circuit_maker import CircuitMaker
 from ai_manual import AIManual
 from ai_ga import AIGA
 from datetime import datetime
@@ -12,8 +12,9 @@ from functools import partial
 import random
 import time
 
-class ControllerAI():
+class ControllerAI(Controller):
     def __init__(self, config):
+        super(Controller, self).__init__()
         self.view = View(config)
         self.config = config
 
@@ -50,74 +51,13 @@ class ControllerAI():
                 return True
         return False
 
-
-    def run_circuit_maker(self):
-        maker = CircuitMaker(self.config)
-         
-        running = True
-        container = 0
-        start = [0,0]
-        while running:
-            self.view.blit(maker.draw(), [self.config['width']//3,0])
-
-            self.view.draw_text(0, 100, "Garanta que as duas paredes tenham a mesma quantidade de pontos",
-                pygame.font.SysFont('mono', 20, bold=True), (255, 0, 0))
-            self.view.draw_text(0, 140, "Aperte Espaço quando acabar uma parede",
-                pygame.font.SysFont('mono', 20, bold=True), (255, 0, 0))
-            self.view.draw_text(0, 180, "Parede1: " + str(len(maker.track_points[0])),
-                pygame.font.SysFont('mono', 20, bold=True), (255, 150, 0))
-            self.view.draw_text(0, 200, "Parede2: " + str(len(maker.track_points[1])),
-                pygame.font.SysFont('mono', 20, bold=True), (255, 150, 0))
-
-            for event in pygame.event.get():
-                if self.is_exit(event):
-                    return False
-                elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                    container += maker.finish(container)
-                    if container == 2:
-                        running = False
-                elif event.type == pygame.KEYDOWN and event.key == pygame.K_BACKSPACE:
-                    if len(maker.track_points[container]) == 0:
-                        container -= 1
-                    if container < 0:
-                        container = 0
-                    else:
-                        maker.remove_last_point(container)
-                else:
-                    mouse = pygame.mouse.get_pressed()
-                    if mouse[0] == 1:
-                        pos = pygame.mouse.get_pos()
-                        if pos[0] - self.config['width']//3 >= 0:
-                                maker.add_point(pos[0] - self.config['width']//3, pos[1], container)
-                                # time.sleep(50/1000)
-
-            self.view.update()
-
-        return maker.get_circuit(start)
-
     def run(self):
         """Run project."""
         x_track_offset = self.config['width']//3
+        self.start_track()
+        self.start_car()
 
-        if self.config['track'] == "custom":
-            track = self.run_circuit_maker()
-        elif self.config['track'] == "circle":
-            track = CircuitCircle(self.config)
-        else:
-            track = CircuitEllipse(self.config)
-
-        if track == False:
-            return
-
-        circuit_surface = track.draw()
-
-        config_car = self.config['car']
-        config_car.update({
-            'fps' : self.config['fps'],
-            'x' : track.start[0],
-            'y' : track.start[1],
-            'start_angle' : track.start_angle,
-        })
+        circuit_surface = self.track.draw()
 
         num_of_cars = self.config['ai']['population_size']        
         cars = []
@@ -131,7 +71,7 @@ class ControllerAI():
         colors = [(x[0], x[1], x[2], 80) for x in colors]
         cars_colors = random.sample(colors, k=(num_of_cars-1))
         while(len(cars) < num_of_cars):
-            config_car_now = config_car.copy()
+            config_car_now = self.config_car.copy()
             if len(cars) == 0:
                 config_car_now['car_color'] = (0, 0, 255, 255)
             else:
@@ -139,7 +79,7 @@ class ControllerAI():
                 config_car_now['front_color'][3] = 80
             cars.append({})
             cars[-1]['car'] = Car(config_car_now)
-            cars[-1]['id'] = track.add_car(cars[-1], self.view.num_frame)
+            cars[-1]['id'] = self.track.add_car(cars[-1], self.view.num_frame)
             cars[-1]['active'] = True
             if len(cars) == 1:
                 cars[-1]['car'].show_vision = True
@@ -156,7 +96,7 @@ class ControllerAI():
             self.view.blit(circuit_surface, [x_track_offset, 0])
             
             # Batch check collision for all cars:
-            batch_col = track.batch_collision_car([car['car'] for car in cars])
+            batch_col = self.track.batch_collision_car([car['car'] for car in cars])
             for i in range(num_of_cars):
                 cars[i]['collision'] = batch_col[i]
 
@@ -164,7 +104,7 @@ class ControllerAI():
             list_shapes = []
             for car in cars:
                 list_shapes.extend(car['car'].get_points_vision())
-            batch_col = track.batch_collision(list_shapes)
+            batch_col = self.track.batch_collision(list_shapes)
             p_now = 0
             for car in cars:
                 col_now = batch_col[p_now : p_now + len(car['car'].vision)]
@@ -188,28 +128,28 @@ class ControllerAI():
 
                 if(car['collision'] == CircuitCircle.COLLISION_WALL):
                     ai.set_evaluation(car['id'], {
-                        'perc_of_sectors' : track.get_car_perc_sectors(car['id']),
-                        'amount_frames' : track.get_car_num_frames(car['id'], self.view.num_frame)
+                        'perc_of_sectors' : self.track.get_car_perc_sectors(car['id']),
+                        'amount_frames' : self.track.get_car_num_frames(car['id'], self.view.num_frame)
                     })
                     car['active'] = False
                 elif(car['collision'] == CircuitCircle.COLLISION_SLOW_AREA):
-                    car['car'].set_friction_multiplier(track.slow_friction_multiplier)
+                    car['car'].set_friction_multiplier(self.track.slow_friction_multiplier)
                 else:
                     car['car'].set_friction_multiplier(1)
                 
-                if track.finished(car['id']) or \
+                if self.track.finished(car['id']) or \
                         (car['active'] and \
-                            track.get_car_num_frames(car['id'], self.view.num_frame) == \
+                            self.track.get_car_num_frames(car['id'], self.view.num_frame) == \
                                 self.config['ai']['max_frames']):
                     ai.set_evaluation(car['id'], {
-                        'perc_of_sectors' : track.get_car_perc_sectors(car['id']),
-                        'amount_frames' : track.get_car_num_frames(car['id'], self.view.num_frame)
+                        'perc_of_sectors' : self.track.get_car_perc_sectors(car['id']),
+                        'amount_frames' : self.track.get_car_num_frames(car['id'], self.view.num_frame)
                     })
                     car['active'] = False
 
                 if car['active']:
                     car_surface = car['car'].draw()
-                    track.update_car_sector(car['id'], car['car'])
+                    self.track.update_car_sector(car['id'], car['car'])
                     self.view.blit(car_surface, car['car'].get_pos_surface())
 
             # self.view.draw_car_ai_eval(cars, ai.features, [0, 60], True)
@@ -221,7 +161,7 @@ class ControllerAI():
                     for i in range(num_of_cars):
                         cars[i]['name'] = "ai_%d" % cars[i]['id']
                         cars[i]['active'] = True
-                        self.reset(cars[i]['car'], cars[i]['id'], track)
+                        self.reset(cars[i]['car'], cars[i]['id'], self.track)
                 else:
                     running = False
 

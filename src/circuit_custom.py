@@ -20,8 +20,13 @@ class CircuitCustom(Circuit):
         a, b = track_points
         self.sectors = [[a[i], b[i]] for i in range(len(a))]
         self.num_of_sectors = len(self.sectors) - 1
-        self.start = [(self.sectors[self.num_of_sectors - 1][0][0] + self.sectors[self.num_of_sectors - 1][1][0]) // 2,
-            (self.sectors[self.num_of_sectors - 1][0][1] + self.sectors[self.num_of_sectors - 1][1][1]) // 2] 
+        self.start = [
+            (self.sectors[self.num_of_sectors - 1][0][0] +
+                self.sectors[self.num_of_sectors - 1][1][0]) // 2 +
+                config['width']//3,
+            (self.sectors[self.num_of_sectors - 1][0][1] +
+                self.sectors[self.num_of_sectors - 1][1][1]) // 2
+            ] 
         # self.start = [(self.sectors[0][0][0] + self.sectors[0][1][0]) // 2,
         #     (self.sectors[0][0][1] + self.sectors[0][1][1]) // 2] 
         

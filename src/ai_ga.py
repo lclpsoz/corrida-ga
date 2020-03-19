@@ -113,7 +113,12 @@ class AIGA(AI):
         sorted_by_fitness.sort(key=lambda x : (x[0], x[2]))
         if self.verbose > 0:
             print("Generation %d. Previous in %.2f s" % (self.generation, time.time() - self.t_gen_start))
-            print("\tTOP 5% fitness:", ["%.2f, (%.2f, %.2f)" % (i[0], i[1]['perc_of_sectors'], i[1]['amount_frames']) for i in [(x,y) for x, y, _ in sorted_by_fitness][-int(self.population_size*0.05):]][::-1])
+            qnt_top_5p = max(1, int(self.population_size*0.05))
+            top_5p = [(x,y) for x, y, _ in sorted_by_fitness][-qnt_top_5p:]
+            to_prt = [( x[0],
+                        x[1]['perc_of_sectors'],
+                        x[1]['amount_frames']) for x in top_5p][::-1]
+            print("\tTOP 5% fitness:", ["%.2f, (%.2f, %.2f)" % x for x in to_prt])
             print("\tBest fitness: %.2f" % max(self.fitness))
             print("\tAvr fitness: %.2f" % (sum(self.fitness)/self.population_size))
             print("\tWorst fitness: %.2f" % min(self.fitness))
