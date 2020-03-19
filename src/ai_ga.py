@@ -64,6 +64,10 @@ class AIGA(AI):
             for k in range(self.gene_size):
                 if random.random() < self.mutation_chance:
                     indv[j][k] += random.uniform(-self.mutation_factor, self.mutation_factor)
+                    if indv[j][k] > 1:
+                        indv[j][k] = 1
+                    elif indv[j][k] < -1:
+                        indv[j][k] = -1
 
     def crossover(self, parent_1, parent_2):
         """Returns two individuals, result of the crossover."""
@@ -127,6 +131,7 @@ class AIGA(AI):
 
         self.population = pop_elitism + pop_crossover + pop_new
         self.fitness = None
+        self.features = [None for i in range(self.population_size)]
         self.evaluated = 0
         self.t_gen_start = time.time()
 
