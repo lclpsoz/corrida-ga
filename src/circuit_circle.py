@@ -14,8 +14,8 @@ class CircuitCircle(Circuit):
         self.inner_circle = config['circuit_circle']['inner_circle']
         self.outter_circle = config['circuit_circle']['outter_circle']
         self.surface = pygame.Surface(surface_dim)
-        self.start = [self.center_draw[0] - (self.outter_circle + self.inner_circle) // 2,
-                                    self.center_draw[1]]
+        self.start = [self.center[0] - (self.outter_circle + self.inner_circle) // 2,
+                                    self.center[1]]
         self.num_of_sectors = 36
     
     def draw(self):

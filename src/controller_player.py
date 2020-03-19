@@ -159,10 +159,6 @@ class ControllerPlayer():
             track.update_car_sector(player_id, player)
             self.view.blit(player_surface, player.get_pos_surface())
             
-            # Screen information
-            text_pos_top_left = 0
-            self.view.draw_text(0, 280, "Sector: " + str(track.car_current_sector[player_id]),
-                pygame.font.SysFont('mono', 20, bold=True), (255, 0, 0))
             # self.view.draw_car_controls(player.get_controls(), [0, 0])
             # self.view.draw_player_data(self.get_car_data_str(player), [0, 60])
             
