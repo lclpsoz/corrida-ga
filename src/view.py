@@ -8,6 +8,7 @@ class View():
         self.width = config['width']
         self.height = config['height']
         self.fps = config['fps']
+        self.fps_info = config['fps_info']
         self.screen = pygame.display.set_mode((self.width, self.height),
                         pygame.DOUBLEBUF)
         self.font = pygame.font.SysFont('mono', 20, bold=True)
@@ -89,7 +90,7 @@ class View():
         self.draw_text(0, 40, "Num of frames: %4d|%8d" % (self.num_frame_now, self.num_frame), 
                         self.font)
 
-        if self.num_frame%self.fps == 0:
+        if self.num_frame%(self.fps//self.fps_info) == 0:
             pygame.display.update(pygame.Rect((0, 0), (self.width//3 - 1, self.height)))
         pygame.display.update(pygame.Rect((self.width//3, 0), (2*self.width//3, self.height)))
         self.num_frame += 1

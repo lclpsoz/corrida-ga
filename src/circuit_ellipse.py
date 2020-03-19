@@ -11,7 +11,8 @@ class CircuitEllipse(Circuit):
     def __init__(self, config):
         super(CircuitEllipse, self).__init__(config['circuit_ellipse'])
         surface_dim = (2*config['width']//3, config['height'])
-        self.center = [surface_dim[0] // 2, surface_dim[1] // 2]
+        self.center = [config['width']//3 + surface_dim[0] // 2, surface_dim[1] // 2]
+        self.center_draw = [surface_dim[0] // 2, surface_dim[1] // 2]
         self.inner = config['circuit_ellipse']['inner']
         self.outter = config['circuit_ellipse']['outter']
         self.surface = pygame.Surface(surface_dim)
@@ -27,13 +28,13 @@ class CircuitEllipse(Circuit):
                             (self.center[0] - self.outter[0], self.center[1] - self.outter[1],
                             2 * self.outter[0], 2 * self.outter[1]))    
         pygame.draw.ellipse(self.surface, self.color_slow_area,
-                            (self.center[0] - self.outter[0] + self.wall, self.center[1] - self.outter[1] + self.wall, 
+                            (self.center_draw[0] - self.outter[0] + self.wall, self.center_draw[1] - self.outter[1] + self.wall, 
                             2 * (self.outter[0] - self.wall), 2 * (self.outter[1] - self.wall)))
         pygame.draw.ellipse(self.surface, self.color_background,
                             (self.center[0] - self.outter[0] + self.slow_area + self.wall, self.center[1] - self.outter[1] + self.slow_area + self.wall, 
                             2 * (self.outter[0] - self.slow_area - self.wall), 2 * (self.outter[1] - self.slow_area - self.wall)))
         pygame.draw.ellipse(self.surface, self.color_slow_area,
-                            (self.center[0] - self.inner[0] - self.slow_area, self.center[1] - self.inner[1] - self.slow_area,
+                            (self.center_draw[0] - self.inner[0] - self.slow_area, self.center_draw[1] - self.inner[1] - self.slow_area,
                             2 * (self.inner[0] + self.slow_area), 2 * (self.inner[1] + self.slow_area)))
         pygame.draw.ellipse(self.surface, self.color_wall,
                             (self.center[0] - self.inner[0], self.center[1] - self.inner[1],
