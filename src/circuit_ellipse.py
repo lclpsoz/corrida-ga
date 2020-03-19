@@ -23,22 +23,22 @@ class CircuitEllipse(Circuit):
         """Returns the pygame.Surface with the track drawed"""
         self.surface.set_colorkey((0, 255, 0))
         self.surface.fill((0,255,0))
-        pygame.draw.ellipse(self.surface, self.color_background, 
+        pygame.draw.ellipse(self.surface, self.color_wall, 
                             (self.center[0] - self.outter[0], self.center[1] - self.outter[1],
                             2 * self.outter[0], 2 * self.outter[1]))    
         pygame.draw.ellipse(self.surface, self.color_slow_area,
                             (self.center[0] - self.outter[0] + self.wall, self.center[1] - self.outter[1] + self.wall, 
                             2 * (self.outter[0] - self.wall), 2 * (self.outter[1] - self.wall)))
-        pygame.draw.ellipse(self.surface, self.color_wall,
+        pygame.draw.ellipse(self.surface, self.color_background,
                             (self.center[0] - self.outter[0] + self.slow_area + self.wall, self.center[1] - self.outter[1] + self.slow_area + self.wall, 
                             2 * (self.outter[0] - self.slow_area - self.wall), 2 * (self.outter[1] - self.slow_area - self.wall)))
         pygame.draw.ellipse(self.surface, self.color_slow_area,
                             (self.center[0] - self.inner[0] - self.slow_area, self.center[1] - self.inner[1] - self.slow_area,
                             2 * (self.inner[0] + self.slow_area), 2 * (self.inner[1] + self.slow_area)))
-        pygame.draw.ellipse(self.surface, self.color_background,
+        pygame.draw.ellipse(self.surface, self.color_wall,
                             (self.center[0] - self.inner[0], self.center[1] - self.inner[1],
                             2 * self.inner[0], 2 * self.inner[1]))
-        pygame.draw.ellipse(self.surface, self.color_wall,
+        pygame.draw.ellipse(self.surface, self.color_background,
                             (self.center[0] - self.inner[0] + self.wall, self.center[1] - self.inner[1] + self.wall,
                             2 * (self.inner[0] - self.wall), 2 * (self.inner[1] - self.wall)))
         return self.surface

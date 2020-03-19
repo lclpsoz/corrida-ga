@@ -5,7 +5,7 @@
     "fps" : 60,
     "acum_fps_window" : 120,
     "verbose" : 1,
-    "track" : "ellipse",
+    "track" : "circle",
     "car" :
     {
         "number_of_visions" : 18,
@@ -45,6 +45,13 @@
         "slow_area" : 20, 
         "wall" : 2,
         "slow_multiplier" : 10, 
+        "start_angle" : 90
+    },   
+    "circuit_custom" :
+    {
+        "slow_area" : 0, 
+        "wall" : 2,
+        "slow_multiplier" : 0, 
         "start_angle" : 90
     }
 }

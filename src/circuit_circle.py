@@ -21,17 +21,17 @@ class CircuitCircle(Circuit):
         """Returns the pygame.Surface with the track drawed"""
         self.surface.set_colorkey((0, 255, 0))
         self.surface.fill((0,255,0))
-        pygame.draw.circle(self.surface, self.color_background, self.center,
+        pygame.draw.circle(self.surface, self.color_wall, self.center,
                             self.outter_circle)    
         pygame.draw.circle(self.surface, self.color_slow_area, self.center,
                             self.outter_circle - self.wall)
-        pygame.draw.circle(self.surface, self.color_wall, self.center,
+        pygame.draw.circle(self.surface, self.color_background, self.center,
                             self.outter_circle - self.slow_area - self.wall)    
         pygame.draw.circle(self.surface, self.color_slow_area, self.center,
                             self.inner_circle + self.slow_area)    
-        pygame.draw.circle(self.surface, self.color_background, self.center,
-                            self.inner_circle)    
         pygame.draw.circle(self.surface, self.color_wall, self.center,
+                            self.inner_circle)    
+        pygame.draw.circle(self.surface, self.color_background, self.center,
                             self.inner_circle - self.wall)    
         return self.surface
 

@@ -20,7 +20,7 @@
     "ai" :
     {
         "type" : "ga",
-        "population_size" : 20,
+        "population_size" : 10,
         "num_of_generations" : 10,
         "max_frames" : 600,
         "mutation_chance" : 0.1,
@@ -45,6 +45,13 @@
         "slow_area" : 20, 
         "wall" : 2,
         "slow_multiplier" : 10, 
+        "start_angle" : 90
+    },
+    "circuit_custom" :
+    {
+        "slow_area" : 0, 
+        "wall" : 2,
+        "slow_multiplier" : 0, 
         "start_angle" : 90
     }
 }
