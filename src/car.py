@@ -32,6 +32,8 @@ class Car():
         self.generate_car_graphics()
         self.update_car_angle()
 
+        self.show_vision = False
+
     def set_default_settings(self):
         config = self.config
         self.x = config['x']
@@ -92,9 +94,9 @@ class Car():
         self.update_car_angle_exact(-90)
 
         # Start PyGame surface for the car
-        self.surface = pygame.Surface((round(self.surface_side), round(self.surface_side)))
-        self.surface.set_colorkey((0, 255, 0))
-        self.surface.fill((0, 255, 0))
+        self.surface = pygame.Surface((round(self.surface_side), round(self.surface_side)), pygame.SRCALPHA)
+        # self.surface.set_colorkey((0, 255, 0))
+        self.surface.fill((0, 255, 0, 0))
         self.ori_car_structure = []
         self.ori_car_front = []
         self.ori_car_seg_vision = []
@@ -225,12 +227,13 @@ class Car():
 
     def draw(self):
         """Updates surface based on changes in the car shape."""
-        self.surface.fill((0, 255, 0))
+        self.surface.fill((0, 0, 0, 0))
         pygame.draw.polygon(self.surface, self.car_color, self.car_structure)
         pygame.draw.polygon(self.surface, self.front_color, self.car_front)
-        for i in range(len(self.car_seg_vision)):
-            pygame.draw.line(self.surface, self.car_vision_colors[self.vision[i]],
-                self.center, self.car_seg_vision[i])
+        if self.show_vision:
+            for i in range(len(self.car_seg_vision)):
+                pygame.draw.line(self.surface, self.car_vision_colors[self.vision[i]],
+                    self.center, self.car_seg_vision[i])
         return self.surface
 
     def set_friction_multiplier(self, friction_multiplier):

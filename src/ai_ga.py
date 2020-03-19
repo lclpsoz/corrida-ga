@@ -11,6 +11,7 @@ class AIGA(AI):
             print("Population size must be even!")
             exit(0)
         self.config = config
+        self.EPS = config['EPS']
         self.gene_size = self.config['car']['number_of_visions'] + 1
         self.gene_amnt = 4 # Types of movement
         self.population = self.random_population(self.population_size)
@@ -47,7 +48,7 @@ class AIGA(AI):
             total = gene[0]*speed
             for j in range(1, self.gene_size):
                 total += gene[j]*vision[j-1]
-            mov.append(total >= 0)
+            mov.append(total > self.EPS)
         return mov
 
     def calc_fitness(self):
@@ -129,7 +130,7 @@ class AIGA(AI):
             pop_crossover.extend(self.crossover(parent_1, parent_2))
         pop_new = self.random_population(self.pop_size_new)
 
-        self.population = pop_elitism + pop_crossover + pop_new
+        self.population = pop_elitism[::-1] + pop_crossover + pop_new
         self.fitness = None
         self.features = [None for i in range(self.population_size)]
         self.evaluated = 0

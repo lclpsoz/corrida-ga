@@ -68,14 +68,28 @@ class ControllerAI():
 
         num_of_cars = self.config['ai']['population_size']        
         cars = []
-        cars_colors = random.sample(pygame.color.THECOLORS.items(), k=num_of_cars)
+        colors = [list(x[1]) for x in pygame.color.THECOLORS.items()]
+        to_remove = []
+        for x in colors:
+            if sum(x[:3]) < 255//2 or sum(x[:3]) > 255*2 or max(x[:3]) == 255 or min(x[:3]) <= 30:
+                to_remove.append(x)
+        for x in to_remove:
+            colors.remove(x)
+        colors = [(x[0], x[1], x[2], 80) for x in colors]
+        cars_colors = random.sample(colors, k=(num_of_cars-1))
         while(len(cars) < num_of_cars):
             config_car_now = config_car.copy()
-            config_car_now['car_color'] = cars_colors.pop()[1]
+            if len(cars) == 0:
+                config_car_now['car_color'] = (0, 0, 255, 255)
+            else:
+                config_car_now['car_color'] = cars_colors.pop()
+                config_car_now['front_color'][3] = 80
             cars.append({})
             cars[-1]['car'] = Car(config_car_now)
             cars[-1]['id'] = track.add_car(cars[-1], self.view.num_frame)
             cars[-1]['active'] = True
+            if len(cars) == 1:
+                cars[-1]['car'].show_vision = True
 
         if self.config['ai']['type'] == 'ga':
             ai = AIGA(self.config)
@@ -104,7 +118,15 @@ class ControllerAI():
                 p_now += len(car['car'].vision)
                 car['car'].vision = [col == CircuitCircle.COLLISION_WALL for col in col_now]
 
-            for car in cars:
+            # Set information about first 5 cars on view
+            visions = []
+            speeds = []
+            for car in cars[:1]:
+                visions.append(car['car'].vision)
+                speeds.append(car['car'].get_speed())
+            self.view.set_data_ai_activation(ai.population[:1], visions, speeds)
+
+            for car in cars[1:] + cars[0:1]:
                 if not car['active']:
                     continue
 
@@ -137,7 +159,7 @@ class ControllerAI():
                     track.update_car_sector(car['id'], car['car'])
                     self.view.blit(car_surface, car['car'].get_pos_surface())
 
-            # self.view.draw_car_ai_eval(cars, ai.features, [0, 0], True)
+            # self.view.draw_car_ai_eval(cars, ai.features, [0, 60], True)
             self.view.update()
 
             if ai.population_evaluated():

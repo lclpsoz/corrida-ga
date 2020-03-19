@@ -5,13 +5,14 @@ from collections import deque
 class View():
     def __init__(self, config):
         self.config = config
+        self.EPS = config['EPS']
         self.width = config['width']
         self.height = config['height']
         self.fps = config['fps']
         self.fps_info = config['fps_info']
         self.screen = pygame.display.set_mode((self.width, self.height),
                         pygame.DOUBLEBUF)
-        self.font = pygame.font.SysFont('mono', 20, bold=True)
+        self.font = pygame.font.SysFont('mono', 20, bold=False)
         self.screen.fill((255, 255, 255))
         self.clock = pygame.time.Clock()
 
@@ -59,8 +60,7 @@ class View():
         if sort:
             prt.sort(key=lambda x : (-x[1][0], x[1][1]) if x[1] else (1e18, 1e18))
 
-        font_size = 10
-        font = pygame.font.SysFont('mono', font_size, bold=True)
+        font_size = 15
         for p in prt:
             if p[1]:
                 txt = p[0] + " : " + ("p=%.2f, f=%d" % tuple(p[1]))
@@ -68,10 +68,92 @@ class View():
                 txt = p[0] + " = None"
             self.draw_text(pos[0], pos[1],
                 txt, 
-                pygame.font.SysFont('mono', 15, bold=False))
+                pygame.font.SysFont('mono', font_size, bold=False))
             pos[1] += font_size+4
             if pos[1] > self.height:
                 return
+
+    def set_data_ai_activation(self, population : list, visions : list, speeds : float):
+        """Receive list of individuals, vision and speed. Organize the data
+        to be presentend on screen."""
+        self.population = population
+        for i in range(len(visions)):
+            for j in range(len(visions[i])):
+                if visions[i][j]:
+                    visions[i][j] = 1
+                else:
+                    visions[i][j] = 0
+        self.visions = visions
+        self.speeds = speeds
+
+    def draw_ai_activation(self, pos):
+        """Draw representation for activation in AIs that was previously
+        setted as attribute."""
+        def get_color(x):
+            ret = (0,0,0)
+            if x > self.EPS:
+                ret = (0, 254, 0)
+            elif x < -self.EPS:
+                ret = (255, 0, 0)
+            return ret
+        font_size = 18
+        font = pygame.font.SysFont('mono', font_size, bold=True)
+        surface = pygame.Surface((400, 600))
+        surface.set_colorkey((0, 255, 0))
+        surface.fill((0, 255, 0))
+        for i in range(len(self.population)):
+            self.draw_text(pos[0], pos[1], "%s%s" % (" "*13, "car_" + str(i+1)), font)
+            pos[1] += font_size
+            self.draw_text(pos[0], pos[1], "  ACC  | BREAK | LEFT  | RIGHT |",
+                            font, (0, 0, 0))
+            pos[1] += font_size
+            indv = self.population[i]
+            vision = self.visions[i]
+            speed = self.speeds[i]
+            for j in range(len(indv)):
+                total = 0
+                ori_pos_1 = pos[1]
+                pygame.draw.line(surface, (0, 0, 0), [82+pos[0], pos[1]],
+                                                        [82+pos[0], pos[1]+500])
+                for k in range(len(indv[j])-1):
+                    total += vision[k]*indv[j][k+1]
+                    if vision[k]:
+                        color = (255, 0, 0)
+                    else:
+                        color = (0, 254, 0)
+                    self.draw_text(pos[0], pos[1], str(vision[k]), font, color)
+                    self.draw_text(pos[0]+font_size-1, pos[1], "*", font, (0,0,0))
+                    self.draw_text(pos[0]+(font_size-1)*2-1, pos[1],
+                                        "%+1.1f" % indv[j][k+1],
+                                        font, get_color(indv[j][k+1]))
+                    pos[1] += font_size
+                self.draw_text(pos[0], pos[1], "S=%+05.1f" % total, font, get_color(total))
+                pos[1] += font_size
+                self.draw_text(pos[0], pos[1], "_______", font, (0,0,0))
+                pos[1] += font_size
+                self.draw_text(pos[0], pos[1], "V= %04.1f" % speed, font, (0,0,0))
+                pos[1] += font_size
+                self.draw_text(pos[0], pos[1], "*", font, (0,0,0))
+                self.draw_text(pos[0]+2*font_size-2, pos[1], "%+04.1f" % indv[j][0], font, get_color(indv[j][0]))
+                pos[1] += font_size
+                self.draw_text(pos[0], pos[1], "=======", font, (0,0,0))
+                pos[1] += font_size
+                self.draw_text(pos[0], pos[1], "  %+05.1f" % (speed*indv[j][0]), font, get_color(speed*indv[j][0]))
+                total += speed*indv[j][0]
+                pos[1] += font_size
+                self.draw_text(pos[0], pos[1], "_______", font, (0,0,0))
+                pos[1] += font_size
+                self.draw_text(pos[0], pos[1], "S=%+05.1f" % (total), font, get_color(total))
+                pos[1] += font_size
+
+                if total > self.EPS:
+                    self.draw_text(pos[0], pos[1], " ACTIV ", font, (0,254,0))
+                else:
+                    self.draw_text(pos[0], pos[1], "DEACTIV", font, (255,0,0))
+                pos[1] = ori_pos_1
+                pos[0] += int(font_size * 5)-2
+            pos[1] += font_size
+        self.blit(surface, [0, 0])
 
 
     def update(self):
@@ -82,15 +164,16 @@ class View():
         if len(self.acum_fps) > self.fps*self.acum_fps_window:
             self.sum_of_fps -= self.acum_fps.popleft()
 
-        self.draw_text(0, 0, "FPS: %4.1f" % (
-                        self.clock.get_fps()), self.font)
-        self.draw_text(0, 20, "Avr. FPS (last %ds): %4.1f" % (
-                        self.acum_fps_window, self.sum_of_fps/len(self.acum_fps)), 
-                        self.font)
-        self.draw_text(0, 40, "Num of frames: %4d|%8d" % (self.num_frame_now, self.num_frame), 
-                        self.font)
-
         if self.num_frame%(self.fps//self.fps_info) == 0:
+            self.draw_text(0, 0, "FPS: %4.1f" % (
+                            self.clock.get_fps()), self.font)
+            self.draw_text(0, 20, "Avr. FPS (last %ds): %4.1f" % (
+                            self.acum_fps_window, self.sum_of_fps/len(self.acum_fps)), 
+                            self.font)
+            self.draw_text(0, 40, "Num of frames: %4d|%8d" % (self.num_frame_now, self.num_frame), 
+                            self.font)
+            if hasattr(self, 'population'):
+                self.draw_ai_activation([0, 60])
             pygame.display.update(pygame.Rect((0, 0), (self.width//3 - 1, self.height)))
         pygame.display.update(pygame.Rect((self.width//3, 0), (2*self.width//3, self.height)))
         self.num_frame += 1

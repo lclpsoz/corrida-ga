@@ -159,7 +159,7 @@ class ControllerPlayer():
             self.view.draw_text(0, 200, "Sector: " + str(track.car_current_sector[player_id]),
                 pygame.font.SysFont('mono', 20, bold=True), (255, 0, 0))
             self.view.draw_car_controls(player.get_controls(), [0, 0])
-            self.view.draw_player_data(self.get_car_data_str(player), [0, 60])
+            # self.view.draw_player_data(self.get_car_data_str(player), [0, 60])
             
             # tantantan tantantan
             if track.finished(player_id):
