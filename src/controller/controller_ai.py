@@ -154,7 +154,7 @@ class ControllerAI(Controller):
                 if self.track.finished(car['id']) or \
                         (car['active'] and \
                             self.track.get_car_num_frames(car['id'], self.view.num_frame) == \
-                                self.config['ai']['max_frames']):
+                                ai.max_frames):
                     self.deactivate_car(car, ai)
 
                 if car['active'] and sum(delta_pixels_hist[car['id']]) == 0:

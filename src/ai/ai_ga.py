@@ -21,7 +21,7 @@ class AIGA(AI):
         self.verbose = config['verbose']
         self.t_gen_start = time.time()
         self.fps = config['fps']
-        self.max_frames = config['ai']['max_frames']
+        self.max_frames = config["circuit_" + config['track']]['max_frames']
         self.mutation_chance = config['ai']['mutation_chance']
         self.mutation_factor = config['ai']['mutation_factor']
         self.pop_size_elitism = int(round(config['ai']["proportion_elitism"] * self.population_size))

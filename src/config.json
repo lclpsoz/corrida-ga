@@ -11,7 +11,7 @@
     "car" :
     {
         "number_of_visions" : 18,
-        "vision_length" : 64,
+        "vision_length" : 80,
         "car_width" : 8,
         "car_height" : 16,
         "amount_graphics" : 360,
@@ -24,7 +24,6 @@
         "type" : "ga",
         "population_size" : 100,
         "num_of_generations" : 300,
-        "max_frames" : 600,
         "mutation_chance" : 0.1,
         "mutation_factor" : 0.1,
         "proportion_elitism" : 0.1,
@@ -33,12 +32,13 @@
     },
     "circuit_ellipse" :
     {
-        "inner" : [150, 80],
-        "outter" : [250, 170],
+        "inner" : [250, 180],
+        "outter" : [350, 270],
         "slow_area" : 20, 
         "wall" : 2,
         "slow_multiplier" : 10,
-        "start_angle" : 90
+        "start_angle" : 90,
+        "max_frames" : 600
     },
     "circuit_circle" :
     {
@@ -47,7 +47,8 @@
         "slow_area" : 20, 
         "wall" : 2,
         "slow_multiplier" : 10, 
-        "start_angle" : 90
+        "start_angle" : 90,
+        "max_frames" : 500
     },   
     "circuit_complex_1" :
     {
@@ -67,7 +68,8 @@
         "start_angle" : 90,
         "outter":  [[68, 319], [71, 156], [81, 135], [102, 129], [133, 128], [528, 139], [546, 143], [551, 150], [555, 166], [554, 441], [552, 457], [547, 465], [533, 471], [102, 473], [88, 470], [79, 460], [77, 446], [70, 332], [68, 319]],
         "inner":  [[118, 319], [112, 183], [116, 176], [120, 174], [132, 172], [491, 184], [497, 195], [499, 202], [498, 216], [502, 401], [500, 413], [488, 414], [474, 415], [153, 417], [143, 413], [138, 405], [134, 389], [119, 332], [118, 319]],
-        "run_maker": false
+        "run_maker": false,
+        "max_frames" : 700
     },
     "circuit_custom" :
     {
@@ -77,6 +79,7 @@
         "start_angle" : 90,
         "outter": null,
         "inner": null,
-        "run_maker": true
+        "run_maker": true,
+        "max_frames" : 1000
     }
 }
