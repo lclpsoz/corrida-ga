@@ -10,13 +10,14 @@ from shapely.geometry.point import Point
 import numpy as np
 
 class CircuitCustom(Circuit):
-    def __init__(self, config):
+    def __init__(self, config, circuit_name):
         self.config = config
-        super(CircuitCustom, self).__init__(config['circuit_custom'])
+        circuit_name = 'circuit_' + circuit_name
+        super(CircuitCustom, self).__init__(config[circuit_name])
         surface_dim = (2*config['width']//3, config['height'])
         self.surface = pygame.Surface(surface_dim)
         
-        self.track_points = [config['circuit_custom']['outter'], config['circuit_custom']['inner']]
+        self.track_points = [config[circuit_name]['outter'], config[circuit_name]['inner']]
         a, b = self.track_points
         self.sectors = [[a[i], b[i]] for i in range(len(a))]
         self.num_of_sectors = len(self.sectors) - 1

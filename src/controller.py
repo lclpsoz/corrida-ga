@@ -56,15 +56,15 @@ class Controller(metaclass=ABCMeta):
         return maker.get_circuit()
 
     def start_track(self):
-        if self.config['track'] == "custom":
-            if self.config['circuit_custom']['run_maker']:
-                self.track = self.run_circuit_maker()
-            else:    
-                self.track = CircuitCustom(self.config)
-        elif self.config['track'] == "circle":
+        track_name = self.config['track']
+        if track_name == "circle":
             self.track = CircuitCircle(self.config)
-        else:
+        elif track_name == "ellipse":
             self.track = CircuitEllipse(self.config)
+        elif track_name == "custom":
+            self.track = self.run_circuit_maker()
+        else:
+            self.track = CircuitCustom(self.config, track_name)
 
     def start_car(self):
         self.config_car = self.config['car']

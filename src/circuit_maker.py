@@ -55,7 +55,7 @@ class CircuitMaker(object):
             self.config['circuit_custom'] = {}
         self.config['circuit_custom']['outter'] = self.track_points[0]
         self.config['circuit_custom']['inner'] = self.track_points[1]
-        return CircuitCustom(self.config)
+        return CircuitCustom(self.config, 'custom')
 
     def print_points(self):
         print("outter: ", self.track_points[0])
