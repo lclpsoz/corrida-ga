@@ -3,7 +3,7 @@ import ctypes, ctypes.util
 
 collisions = True
 try:
-    col = ctypes.CDLL("./collisions.so")
+    col = ctypes.CDLL("src/collisions.so")
     print("Collisions.so loaded!")
 except OSError:
     collisions = False
