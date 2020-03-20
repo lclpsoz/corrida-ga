@@ -1,11 +1,12 @@
 import pygame
 import math
-from circuit import Circuit
 import time
-import collisions_wrapper
 import ctypes
 from shapely.geometry import LineString
 from shapely.geometry.polygon import Polygon
+
+from circuit.circuit import Circuit
+import collisions_wrapper
 
 class CircuitEllipse(Circuit):
     def __init__(self, config):

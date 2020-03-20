@@ -1,6 +1,7 @@
 import pygame
 import numpy as np
-from circuit_custom import CircuitCustom
+
+from circuit.circuit_custom import CircuitCustom
 
 class CircuitMaker(object):
     def __init__(self, config):

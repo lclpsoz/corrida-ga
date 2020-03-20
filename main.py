@@ -1,10 +1,12 @@
 import pygame
-from controller_player import ControllerPlayer
-from controller_ai import ControllerAI
-from view import View
 import sys
 import json
 import random
+
+sys.path.append('src')
+from controller.controller_player import ControllerPlayer
+from controller.controller_ai import ControllerAI
+from view import View
 
 pygame.init()
 

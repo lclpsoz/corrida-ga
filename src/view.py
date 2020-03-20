@@ -1,6 +1,7 @@
 import pygame
-from car import Car
 from collections import deque
+
+from car import Car
 
 class View():
     def __init__(self, config):

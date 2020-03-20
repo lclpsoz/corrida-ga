@@ -1,9 +1,10 @@
 import pygame
 import math
-from circuit import Circuit
 from shapely.geometry.polygon import Polygon
 from shapely.geometry import LineString
 import time
+
+from circuit.circuit import Circuit
 
 class CircuitCircle(Circuit):
     def __init__(self, config):

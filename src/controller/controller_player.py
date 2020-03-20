@@ -1,16 +1,17 @@
 import pygame
-from car import Car
-from view import View
-from controller import Controller
-from circuit_custom import CircuitCustom
-from circuit_circle import CircuitCircle
-from circuit_ellipse import CircuitEllipse
-from circuit_maker import CircuitMaker
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 import numpy as np
 from datetime import datetime
 import time
+
+from car import Car
+from view import View
+from controller.controller import Controller
+from circuit.circuit_custom import CircuitCustom
+from circuit.circuit_circle import CircuitCircle
+from circuit.circuit_ellipse import CircuitEllipse
+from circuit.circuit_maker import CircuitMaker
 
 class ControllerPlayer(Controller):
     def __init__(self, config):

@@ -1,10 +1,11 @@
 from abc import ABCMeta, abstractmethod
-from circuit_maker import CircuitMaker
-from circuit_circle import CircuitCircle
-from circuit_ellipse import CircuitEllipse
-from circuit_custom import CircuitCustom
 import pygame
 import time
+
+from circuit.circuit_maker import CircuitMaker
+from circuit.circuit_circle import CircuitCircle
+from circuit.circuit_ellipse import CircuitEllipse
+from circuit.circuit_custom import CircuitCustom
 
 class Controller(metaclass=ABCMeta):
     def __init__(self):

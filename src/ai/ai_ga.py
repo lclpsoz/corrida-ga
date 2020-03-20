@@ -1,8 +1,9 @@
-from ai import AI
 import numpy as np
 import random
 import time
 from copy import deepcopy
+
+from ai.ai import AI
 
 class AIGA(AI):
     def __init__(self, config):

@@ -1,17 +1,18 @@
 import pygame
-from car import Car
-from view import View
-from controller import Controller
-from circuit_custom import CircuitCustom
-from circuit_circle import CircuitCircle
-from circuit_ellipse import CircuitEllipse
-from ai_manual import AIManual
-from ai_ga import AIGA
-from datetime import datetime
-from functools import partial
 import random
 import time
+from datetime import datetime
+from functools import partial
 from collections import deque
+
+from car import Car
+from view import View
+from controller.controller import Controller
+from circuit.circuit_custom import CircuitCustom
+from circuit.circuit_circle import CircuitCircle
+from circuit.circuit_ellipse import CircuitEllipse
+from ai.ai_manual import AIManual
+from ai.ai_ga import AIGA
 
 class ControllerAI(Controller):
     def __init__(self, config):

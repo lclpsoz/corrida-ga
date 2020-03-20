@@ -5,8 +5,9 @@ import numpy as np
 from shapely import affinity
 from shapely.geometry import LineString
 from shapely.geometry.polygon import Polygon
-from circuit import Circuit
 from copy import deepcopy
+
+from circuit.circuit import Circuit
 
 class Car():
     MOVE_FORWARD = 0

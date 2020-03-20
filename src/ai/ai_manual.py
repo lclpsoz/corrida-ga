@@ -1,6 +1,7 @@
-from ai import AI
 import random
 import time
+
+from ai.ai import AI
 
 class AIManual(AI):
     def __init__(self, config):
