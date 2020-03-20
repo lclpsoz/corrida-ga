@@ -11,6 +11,7 @@ from datetime import datetime
 from functools import partial
 import random
 import time
+from collections import deque
 
 class ControllerAI(Controller):
     def __init__(self, config):
@@ -50,6 +51,14 @@ class ControllerAI(Controller):
             if event.key == pygame.K_ESCAPE:
                 return True
         return False
+
+    def deactivate_car(self, car, ai):
+        """Deactivate a car and set evaluation to ai."""
+        ai.set_evaluation(car['id'], {
+            'perc_of_sectors' : self.track.get_car_perc_sectors(car['id']),
+            'amount_frames' : self.track.get_car_num_frames(car['id'], self.view.num_frame)
+        })
+        car['active'] = False
 
     def run(self):
         """Run project."""
@@ -93,6 +102,11 @@ class ControllerAI(Controller):
         for car in cars:
             car['name'] = "ai_%d" % car['id']
 
+        # To check if all cars are doing something, a list of deques with the
+        # last 3 delta_pixels of each car.
+        history_length = 3
+        delta_pixels_hist = [deque([1 for x in range(history_length)]).copy() for x in range(num_of_cars)]
+
         running = True
         while running:
             self.view.blit(circuit_surface, [x_track_offset, 0])
@@ -113,7 +127,7 @@ class ControllerAI(Controller):
                 p_now += len(car['car'].vision)
                 car['car'].vision = [col == CircuitCircle.COLLISION_WALL for col in col_now]
 
-            # Set information about first 5 cars on view
+            # Set information about first car on view
             visions = []
             speeds = []
             for car in cars[:1]:
@@ -121,6 +135,7 @@ class ControllerAI(Controller):
                 speeds.append(car['car'].get_speed())
             self.view.set_data_ai_activation(ai.population[:1], visions, speeds)
 
+            # First car (cars[0:1]) is updated last, to be on top of all others
             for car in cars[1:] + cars[0:1]:
                 if not car['active']:
                     continue
@@ -129,11 +144,7 @@ class ControllerAI(Controller):
                 car['car'].apply_movement()
 
                 if(car['collision'] == CircuitCircle.COLLISION_WALL):
-                    ai.set_evaluation(car['id'], {
-                        'perc_of_sectors' : self.track.get_car_perc_sectors(car['id']),
-                        'amount_frames' : self.track.get_car_num_frames(car['id'], self.view.num_frame)
-                    })
-                    car['active'] = False
+                    self.deactivate_car(car, ai)
                 elif(car['collision'] == CircuitCircle.COLLISION_SLOW_AREA):
                     car['car'].set_friction_multiplier(self.track.slow_friction_multiplier)
                 else:
@@ -143,13 +154,17 @@ class ControllerAI(Controller):
                         (car['active'] and \
                             self.track.get_car_num_frames(car['id'], self.view.num_frame) == \
                                 self.config['ai']['max_frames']):
-                    ai.set_evaluation(car['id'], {
-                        'perc_of_sectors' : self.track.get_car_perc_sectors(car['id']),
-                        'amount_frames' : self.track.get_car_num_frames(car['id'], self.view.num_frame)
-                    })
-                    car['active'] = False
+                    self.deactivate_car(car, ai)
+
+                if car['active'] and sum(delta_pixels_hist[car['id']]) == 0:
+                    self.deactivate_car(car, ai)
 
                 if car['active']:
+                    # Update delta_pixels history:
+                    delta_pixels_hist[car['id']].popleft()
+                    delta_pixels_hist[car['id']].append(car['car'].delta_pixels)
+                    
+                    # Draw Car
                     car_surface = car['car'].draw()
                     self.track.update_car_sector(car['id'], car['car'])
                     self.view.blit(car_surface, car['car'].get_pos_surface())
@@ -157,6 +172,7 @@ class ControllerAI(Controller):
             # self.view.draw_car_ai_eval(cars, ai.features, [0, 60], True)
             self.view.update()
 
+            # Generation is over
             if ai.population_evaluated():
                 if ai.next_generation():
                     self.view.num_frame_now = 0
@@ -164,6 +180,7 @@ class ControllerAI(Controller):
                         cars[i]['name'] = "ai_%d" % cars[i]['id']
                         cars[i]['active'] = True
                         self.reset(cars[i]['car'], cars[i]['id'], self.track)
+                    delta_pixels_hist = [deque([1 for x in range(history_length)]).copy() for x in range(num_of_cars)]
                 else:
                     running = False
 
