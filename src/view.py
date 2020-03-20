@@ -14,7 +14,8 @@ class View():
         self.screen = pygame.display.set_mode((self.width, self.height),
                         pygame.DOUBLEBUF)
         self.font = pygame.font.SysFont('mono', 20, bold=False)
-        self.screen.fill((255, 255, 255))
+        self.screen.fill((0, 0, 0))
+        pygame.display.update()
         self.clock = pygame.time.Clock()
 
         self.num_frame = 0

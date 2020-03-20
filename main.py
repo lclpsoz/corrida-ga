@@ -6,17 +6,20 @@ import random
 sys.path.append('src')
 from controller.controller_player import ControllerPlayer
 from controller.controller_ai import ControllerAI
-from view import View
+import interface
 
 pygame.init()
 
-assert(len(sys.argv) > 1)
+if len(sys.argv) == 1:
+    interface.run()
+    exit(0)
+
 config = dict(json.load(open(sys.argv[1])))
 
 if 'seed' in config:
     random.seed(config['seed'])
 else:
-    seed = random.randint(0, int(10**64-1))
+    seed = random.randint(0, int(2**64-1))
     print("seed =", seed)
     random.seed(seed)
 
