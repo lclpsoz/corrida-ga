@@ -27,6 +27,14 @@ for x in config.keys():
 print("Available circuits:", available_circuits)
 
 if len(sys.argv) > 2 and sys.argv[2] == 'ga':
+    # Custom track:
+    if len(sys.argv) > 3:
+        config['track'] = sys.argv[3]
+
+    # Custom population size:
+    if len(sys.argv) > 4:
+        config['ai']['population_size'] = int(sys.argv[4])
+
     game_now = ControllerAI(config)
 else:
     game_now = ControllerPlayer(config)
