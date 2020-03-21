@@ -90,6 +90,8 @@ class CircuitEllipse(Circuit):
                 ret.append(maxi)
                 p_now += shape_sz
             assert(len(ret) == len(list_cars))
+            # Free memory
+            collisions_wrapper.freeme(cols_points)
             return ret
         else:
             return [self.collision_car(car) for car in list_cars]
@@ -116,6 +118,8 @@ class CircuitEllipse(Circuit):
                 ret.append(maxi)
                 p_now += shape_sz
             assert(len(ret) == len(list_shapes))
+            # Free memory
+            collisions_wrapper.freeme(cols_points)
             return ret
         else:
             return [self.collision(shape) for shape in list_shapes]

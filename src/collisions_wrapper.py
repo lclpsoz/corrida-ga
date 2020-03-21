@@ -33,3 +33,11 @@ if collisions:
                                     ctypes.c_float,
                                     ctypes.c_int]
     col_circuit_custom.restype = ctypes.POINTER(ctypes.POINTER(ctypes.c_int))
+
+    freeme = col.freeme
+    freeme.argtypes = ctypes.c_void_p,
+    freeme.ret = None
+
+    freeme_n = col.freeme_n
+    freeme_n.argtypes = [ctypes.c_void_p, ctypes.c_int]
+    freeme_n.ret = None

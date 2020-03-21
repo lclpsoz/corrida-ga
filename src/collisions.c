@@ -10,6 +10,18 @@
 // Compile with:
 // cd src && gcc -std=c11 -Wall -Wextra -pedantic -fPIC -shared -o collisions.so collisions.c && cd ..
 
+// Free memory of ptr.
+void freeme(void *ptr) {
+    free(ptr);
+}
+
+// Free memory of ptr and n intern memory allocations.
+void freeme_n(void **ptr, int n) {
+    for (int i = 0; i < n; i++)
+        free(ptr[i]);
+    free(ptr);    
+}
+
 // Receives n points, x and y values to be evaluated as
 // colliding or not. Evaluate each point individually.
 int *col_circuit_ellipse(float *x, float *y, float *center, float *outter,

@@ -121,6 +121,8 @@ class CircuitCustom(Circuit):
                 ret.append(maxi_col)
                 p_now += shape_sz
             assert(len(ret) == len(list_cars))
+            # Free memory
+            collisions_wrapper.freeme_n(batch_ret, 2)
             return ret
         else:
             return [self.collision_car(car) for car in list_cars]
@@ -147,6 +149,8 @@ class CircuitCustom(Circuit):
                 ret.append(maxi)
                 p_now += shape_sz
             assert(len(ret) == len(list_shapes))
+            # Free memory
+            collisions_wrapper.freeme_n(cols_points, 2)
             return ret
         else:
             return [self.collision(shape) for shape in list_shapes]
