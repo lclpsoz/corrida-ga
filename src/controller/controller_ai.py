@@ -83,7 +83,10 @@ class ControllerAI(Controller):
         for x in to_remove:
             colors.remove(x)
         colors = [(x[0], x[1], x[2], 80) for x in colors]
-        cars_colors = random.sample(colors, k=(num_of_cars-1))
+        if num_of_cars >= len(colors):
+            cars_colors = random.choices(colors, k=(num_of_cars-1))
+        else:
+            cars_colors = random.sample(colors, k=(num_of_cars-1))
         while(len(cars) < num_of_cars):
             config_car_now = self.config_car.copy()
             if len(cars) == 0:

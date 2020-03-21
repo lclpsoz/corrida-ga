@@ -14,7 +14,7 @@ class Car():
     MOVE_BREAK = 1
     MOVE_LEFT = 2
     MOVE_RIGHT = 3
-    def __init__(self, config):
+    def __init__(self, config, show_vision = False):
         """Receives information about the car. start_angle is relative to East and is
         anti-clockwise."""
         self.config = config
@@ -33,7 +33,7 @@ class Car():
         self.generate_car_graphics()
         self.update_car_angle()
 
-        self.show_vision = False
+        self.show_vision = show_vision
 
     def set_default_settings(self):
         config = self.config

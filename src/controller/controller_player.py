@@ -60,7 +60,7 @@ class ControllerPlayer(Controller):
 
         circuit_surface = self.track.draw()
 
-        player = Car(self.config_car)
+        player = Car(self.config_car, True)
         car_controls = Car.get_controls()
 
         player_id = self.track.add_car(player, self.view.num_frame)
