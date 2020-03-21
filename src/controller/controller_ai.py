@@ -4,6 +4,7 @@ import time
 from datetime import datetime
 from functools import partial
 from collections import deque
+from pprint import pprint
 
 from car import Car
 from view import View
@@ -19,6 +20,7 @@ class ControllerAI(Controller):
         super(Controller, self).__init__()
         self.view = View(config)
         self.config = config
+        pprint(config)
 
     def get_car_data_str(self, car):
         """Builds a dict about the car car and returns it."""

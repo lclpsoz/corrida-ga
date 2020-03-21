@@ -21,7 +21,6 @@ class AIGA(AI):
         self.verbose = config['verbose']
         self.t_gen_start = time.time()
         self.fps = config['fps']
-        print(config['ai'])
         if 'max_frames' in config['ai']:
             self.max_frames = config['ai']['max_frames']
         else:
