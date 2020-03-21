@@ -21,15 +21,15 @@ if collisions:
                                     ctypes.c_int]
     col_circuit_ellipse.restype = ctypes.POINTER(ctypes.c_int)
 
-    # col_circuit_custom = col.col_circuit_custom
-    # col_circuit_custom.argtypes = [ctypes.POINTER(ctypes.c_float),
-    #                                 ctypes.POINTER(ctypes.c_float),
-    #                                 ctypes.POINTER(ctypes.c_int),
-    #                                 ctypes.POINTER(ctypes.c_float),
-    #                                 ctypes.POINTER(ctypes.c_float),
-    #                                 ctypes.POINTER(ctypes.c_float),
-    #                                 ctypes.POINTER(ctypes.c_float),
-    #                                 ctypes.c_float,
-    #                                 ctypes.c_float,
-    #                                 ctypes.c_int]
-    # col_circuit_custom.restype = ctypes.POINTER(ctypes.c_int)
+    col_circuit_custom = col.col_circuit_custom
+    col_circuit_custom.argtypes = [ctypes.POINTER(ctypes.c_float),
+                                    ctypes.POINTER(ctypes.c_float),
+                                    ctypes.c_int,
+                                    ctypes.POINTER(ctypes.c_float),
+                                    ctypes.POINTER(ctypes.c_float),
+                                    ctypes.POINTER(ctypes.c_float),
+                                    ctypes.POINTER(ctypes.c_float),
+                                    ctypes.c_float,
+                                    ctypes.c_float,
+                                    ctypes.c_int]
+    col_circuit_custom.restype = ctypes.POINTER(ctypes.POINTER(ctypes.c_int))

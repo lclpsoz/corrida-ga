@@ -70,7 +70,7 @@ class ControllerPlayer(Controller):
             self.view.blit(circuit_surface, [x_track_offset, 0])
             
             # Check for collision
-            collision = self.track.collision_car(player)
+            collision = self.track.batch_collision_car([player])[0]
             player.update_vision(self.track)
 
             if(collision == CircuitCircle.COLLISION_WALL):
