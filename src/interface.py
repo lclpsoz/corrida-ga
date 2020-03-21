@@ -28,6 +28,7 @@ class Interface():
         
         self.menu_btns(50, 200)
         self.all_configs = json.load(open("src/all-configs.json"))
+        self.all_fields = []
         self.menu_config(300, 100, self.all_configs)
 
     def menu_btns(self, x : int, y : int):
@@ -107,6 +108,7 @@ class Interface():
                         manager=self.manager,
                         object_id=field[0]
                     )
+                    self.all_fields.append(entry_text)
                     if "FLOAT" in field[1]:
                         entry_text.set_allowed_characters(allowed_characters=float_chars)
                     else:
@@ -114,7 +116,7 @@ class Interface():
 
                     if category == 'ai':
                         if field[0] == "max_frames":
-                            pass # TODO: What value to put here?
+                            pass
                         else:
                             entry_text.set_text(str(self.config['ai'][field[0]]))
                     elif field[0] == 'car_visions':
@@ -134,6 +136,47 @@ class Interface():
                         object_id=field[0]
                     )
 
+    def set_config(self, field, text):
+        """Receive field and text to be setted on config dict."""
+        if field in self.all_configs['ai']:
+            if self.all_configs['ai'][field].endswith('FLOAT'):
+                tp = float
+            else:
+                tp = int
+        elif not field.startswith("car"):
+            if self.all_configs['geral'][field].endswith('FLOAT'):
+                tp = float
+            else:
+                tp = int
+
+        if field in self.config['ai'] or field == 'max_frames':
+            try:
+                self.config['ai'][field] = tp(text)
+            except:
+                print(text, "is a invalid input in", field)
+        elif field == 'car_visions':
+            try:
+                self.config['car']['number_of_visions'] = int(text)
+            except:
+                print(text, "is a invalid input in", field)
+        elif field == 'car_vision_len':
+            try:
+                self.config['car']['vision_length'] = int(text)
+            except:
+                print(text, "is a invalid input in", field)
+        else:
+            try:
+                self.config[field] = tp(text)
+            except:
+                print(text, "is a invalid input in", field)
+
+
+    def set_interface_config(self):
+        """Read all fields in the interface and set them in the config dict."""
+        for ui_elem in self.all_fields:
+            if ui_elem.text != '':
+                self.set_config(ui_elem.object_ids[0], ui_elem.text)
+
     def run(self):
         clock = pygame.time.Clock()
         running = True
@@ -144,6 +187,7 @@ class Interface():
                     running = False
                 elif event.type == pygame.USEREVENT:
                     if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
+                        self.set_interface_config()
                         if event.ui_element == self.btn_player:
                             ControllerPlayer(self.config).run()
                         elif event.ui_element == self.btn_ga:
@@ -151,28 +195,12 @@ class Interface():
                         elif event.ui_element == self.btn_exit:
                             running = False
                     elif event.user_type == pygame_gui.UI_TEXT_ENTRY_FINISHED:
-                        field = event.ui_object_id
-                        if field in self.all_configs['ai']:
-                            if self.all_configs['ai'][field].endswith('FLOAT'):
-                                tp = float
-                            else:
-                                tp = int
-                        elif not field.startswith("car"):
-                            if self.all_configs['geral'][field].endswith('FLOAT'):
-                                tp = float
-                            else:
-                                tp = int
-
-                        if field in self.config['ai'] or field == 'max_frames':
-                            self.config['ai'][field] = tp(event.text)
-                        elif field == 'car_visions':
-                            self.config['car']['number_of_visions'] = int(event.text)
-                        elif field == 'car_vision_len':
-                            self.config['car']['vision_length'] = int(event.text)
-                        else:
-                            self.config[field] = tp(event.text)
+                        self.set_config(event.ui_object_id, event.text)
                     elif event.user_type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED:
-                        self.config[event.ui_object_id] = event.text
+                        if event.ui_object_id == "verbose":
+                            self.config[event.ui_object_id] = int(event.text)
+                        else:
+                            self.config[event.ui_object_id] = event.text
 
                 self.manager.process_events(event)
 
