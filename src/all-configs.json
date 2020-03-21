@@ -1,0 +1,25 @@
+{
+    "geral":
+    {
+        "seed" : "TYPE_INT",
+        "EPS" : "TYPE_FLOAT",
+        "fps" : "TYPE_INT",
+        "fps_info" : "TYPE_INT",
+        "acum_fps_window" : "TYPE_INT",
+        "verbose" : [0, 1, 2],
+        "track" : ["ellipse", "circle", "rect_rounded", "complex_1", "custom"],
+        "car_visions" : "TYPE_INT",
+        "car_vision_len" : "TYPE_INT"
+    },
+    "ai" :
+    {
+        "population_size" : "TYPE_INT",
+        "num_of_generations" : "TYPE_INT",
+        "mutation_chance" : "TYPE_FLOAT",
+        "mutation_factor" : "TYPE_FLOAT",
+        "proportion_elitism" : "TYPE_FLOAT",
+        "proportion_crossover" : "TYPE_FLOAT",
+        "proportion_new" : "TYPE_FLOAT",
+        "max_frames" : "TYPE_INT"
+    }
+}

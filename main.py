@@ -6,12 +6,12 @@ import random
 sys.path.append('src')
 from controller.controller_player import ControllerPlayer
 from controller.controller_ai import ControllerAI
-import interface
+from interface import Interface
 
 pygame.init()
 
 if len(sys.argv) == 1:
-    interface.run()
+    Interface().run()
     exit(0)
 
 config = dict(json.load(open(sys.argv[1])))
