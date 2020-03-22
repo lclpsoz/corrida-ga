@@ -1,14 +1,27 @@
 import pygame
 import numpy as np
 
-from circuit.circuit_custom import CircuitCustom
+from circuit.circuit import Circuit
 
 class CircuitMaker(object):
     def __init__(self, config):
-        surface_dim = (2*config['width']//3, config['height'])
-        self.surface = pygame.Surface(surface_dim)
+        self.surface_dim = (2*config['width']//3, config['height'])
+        self.surface = pygame.Surface(self.surface_dim)
         self.track_points = [[],[]]
         self.config = config
+        self.base_image_surface = pygame.Surface(self.surface_dim)
+        self.base_image_path = self.config['circuit_custom']['base_image_path']
+
+
+    def draw_base_image(self):
+        if self.base_image_path != "":
+            self.base_image_surface = pygame.image.load(self.base_image_path).convert()
+            pygame.transform.scale(self.base_image_surface, self.surface_dim)
+            self.base_image_surface.set_alpha(50)
+        else:
+            self.base_image_surface.set_colorkey((0, 255, 0))
+            self.base_image_surface.fill((0,255,0))
+        return self.base_image_surface
     
     def add_point(self, x, y, container):
         self.track_points[container].append([x, y])
@@ -56,7 +69,7 @@ class CircuitMaker(object):
             self.config['circuit_custom'] = {}
         self.config['circuit_custom']['outter'] = self.track_points[0]
         self.config['circuit_custom']['inner'] = self.track_points[1]
-        return CircuitCustom(self.config, 'custom')
+        return Circuit(self.config, 'custom')
 
     def print_points(self):
         print("outter: ", self.track_points[0])
