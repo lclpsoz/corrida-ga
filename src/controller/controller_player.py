@@ -71,8 +71,8 @@ class ControllerPlayer(Controller):
             
             # Check for collision
             collision = self.track.batch_collision_car([player])[0]
-            # dists_col = self.track.batch_collision_dist(player.get_points_vision())
-            # player.vision = [x/player.vision_length for x in dists_col]
+            dists_col = self.track.batch_collision_dist(player.get_points_vision())
+            player.vision = [x/player.vision_length for x in dists_col]
 
             # Draw car
             player_surface = player.draw()
