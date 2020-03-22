@@ -8,9 +8,7 @@ import time
 from car import Car
 from view import View
 from controller.controller import Controller
-from circuit.circuit_custom import CircuitCustom
-from circuit.circuit_circle import CircuitCircle
-from circuit.circuit_ellipse import CircuitEllipse
+from circuit.circuit import Circuit
 from circuit.circuit_maker import CircuitMaker
 
 class ControllerPlayer(Controller):
@@ -56,6 +54,8 @@ class ControllerPlayer(Controller):
         """Run project."""
         x_track_offset = self.config['width']//3
         self.start_track()
+        if self.track == None:
+            return
         self.start_car()
 
         circuit_surface = self.track.draw()
@@ -71,8 +71,8 @@ class ControllerPlayer(Controller):
             
             # Check for collision
             collision = self.track.batch_collision_car([player])[0]
-            dists_col = self.track.batch_collision_dist(player.get_points_vision())
-            player.vision = [x/player.vision_length for x in dists_col]
+            # dists_col = self.track.batch_collision_dist(player.get_points_vision())
+            # player.vision = [x/player.vision_length for x in dists_col]
 
             # Draw car
             player_surface = player.draw()
@@ -82,7 +82,7 @@ class ControllerPlayer(Controller):
             self.track.update_car_sector(player_id, player)
 
             # Process collision
-            if(collision == CircuitCircle.COLLISION_WALL):
+            if(collision == Circuit.COLLISION_WALL):
                 time_elapsed = datetime.fromtimestamp(self.track.get_current_car_time(player_id))
                 str_time = time_elapsed.strftime("%M:%S:%f")
                 print("Crashed! " + str_time)
@@ -97,11 +97,6 @@ class ControllerPlayer(Controller):
                     self.reset(player, player_id, self.track)
                 else:
                     running = False
-            elif(collision == CircuitCircle.COLLISION_SLOW_AREA):
-                player.set_friction_multiplier(self.track.slow_friction_multiplier)
-                player.handle_keys()
-                self.view.draw_text(0, 180, "Dirigindo em area lenta!",
-                    pygame.font.SysFont('mono', 20, bold=True), (255, 0, 0))
             else:
                 player.set_friction_multiplier(1)
                 player.handle_keys()

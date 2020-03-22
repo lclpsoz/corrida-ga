@@ -3,9 +3,8 @@ import pygame
 import time
 
 from circuit.circuit_maker import CircuitMaker
-from circuit.circuit_circle import CircuitCircle
-from circuit.circuit_ellipse import CircuitEllipse
-from circuit.circuit_custom import CircuitCustom
+from circuit.circuit import Circuit
+
 
 class Controller(metaclass=ABCMeta):
     def __init__(self):
@@ -19,6 +18,7 @@ class Controller(metaclass=ABCMeta):
         lst_click = -1
         while running:
             self.view.blit(maker.draw(), [self.config['width']//3,0])
+            self.view.blit(maker.draw_base_image(), [self.config['width']//3,0])
 
             self.view.draw_text(0, 100, "Garanta que as duas paredes tenham a mesma quantidade de pontos",
                 pygame.font.SysFont('mono', 20, bold=True), (255, 0, 0))
@@ -31,7 +31,7 @@ class Controller(metaclass=ABCMeta):
 
             for event in pygame.event.get():
                 if self.is_exit(event):
-                    return False
+                    return None
                 elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                     container += maker.finish(container)
                     if container == 2:
@@ -58,14 +58,10 @@ class Controller(metaclass=ABCMeta):
 
     def start_track(self):
         track_name = self.config['track']
-        if track_name == "circle":
-            self.track = CircuitCircle(self.config)
-        elif track_name == "ellipse":
-            self.track = CircuitEllipse(self.config)
-        elif track_name == "custom":
+        if track_name == "custom":
             self.track = self.run_circuit_maker()
         else:
-            self.track = CircuitCustom(self.config, track_name)
+            self.track = Circuit(self.config, track_name)
 
     def start_car(self):
         self.config_car = self.config['car']

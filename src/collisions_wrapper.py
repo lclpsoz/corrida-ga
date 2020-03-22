@@ -10,34 +10,22 @@ except OSError:
     print("Unable to load collisions.so.")
 
 if collisions:
-    # Collision for ellipse
-    col_circuit_ellipse = col.col_circuit_ellipse
-    col_circuit_ellipse.argtypes = [ctypes.POINTER(ctypes.c_float),
-                                    ctypes.POINTER(ctypes.c_float),
-                                    ctypes.POINTER(ctypes.c_float),
-                                    ctypes.POINTER(ctypes.c_float),
-                                    ctypes.POINTER(ctypes.c_float),
-                                    ctypes.c_float,
-                                    ctypes.c_float,
-                                    ctypes.c_int]
-    col_circuit_ellipse.restype = ctypes.POINTER(ctypes.c_int)
-
-    # Collision for custom circuit
-    col_circuit_custom = col.col_circuit_custom
-    col_circuit_custom.argtypes = [ ctypes.POINTER(ctypes.c_float),
+    # Collision for circuit
+    col_circuit = col.col_circuit
+    col_circuit.argtypes = [ ctypes.POINTER(ctypes.c_float),
                                     ctypes.c_int,
                                     ctypes.POINTER(ctypes.c_float),
                                     ctypes.c_int]
-    col_circuit_custom.restype = ctypes.POINTER(ctypes.c_int)
+    col_circuit.restype = ctypes.POINTER(ctypes.c_int)
     
-    # Collision distance for custom circuit
-    col_dist_circuit_custom = col.col_dist_circuit_custom
-    col_dist_circuit_custom.argtypes = [ctypes.POINTER(ctypes.c_float),
+    # Collision distance for  circuit
+    col_dist_circuit = col.col_dist_circuit
+    col_dist_circuit.argtypes = [ctypes.POINTER(ctypes.c_float),
                                         ctypes.POINTER(ctypes.c_float),
                                         ctypes.c_int,
                                         ctypes.POINTER(ctypes.c_float),
                                         ctypes.c_int]
-    col_dist_circuit_custom.restype = ctypes.POINTER(ctypes.c_float)
+    col_dist_circuit.restype = ctypes.POINTER(ctypes.c_float)
 
     # Free memory of array
     freeme = col.freeme

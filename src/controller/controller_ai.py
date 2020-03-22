@@ -9,9 +9,7 @@ from pprint import pprint
 from car import Car
 from view import View
 from controller.controller import Controller
-from circuit.circuit_custom import CircuitCustom
-from circuit.circuit_circle import CircuitCircle
-from circuit.circuit_ellipse import CircuitEllipse
+from circuit.circuit import Circuit
 from ai.ai_manual import AIManual
 from ai.ai_ga import AIGA
 
@@ -67,6 +65,8 @@ class ControllerAI(Controller):
         """Run project."""
         x_track_offset = self.config['width']//3
         self.start_track()
+        if self.track == None:
+            return
         self.start_car()
         self.view.num_frame = 0
         self.view.num_frame_now = 0
@@ -157,10 +157,8 @@ class ControllerAI(Controller):
                 car['car'].movement = ai.calc_movement(car['id'], car['car'].vision, car['car'].get_speed())
                 car['car'].apply_movement()
 
-                if(car['collision'] == CircuitCircle.COLLISION_WALL):
+                if(car['collision'] == Circuit.COLLISION_WALL):
                     self.deactivate_car(car, ai)
-                elif(car['collision'] == CircuitCircle.COLLISION_SLOW_AREA):
-                    car['car'].set_friction_multiplier(self.track.slow_friction_multiplier)
                 else:
                     car['car'].set_friction_multiplier(1)
                 
