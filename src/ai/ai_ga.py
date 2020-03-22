@@ -1,12 +1,15 @@
-import numpy as np
 import random
 import time
+import os
+import json
+import numpy as np
 from copy import deepcopy
+from datetime import datetime
 
 from ai.ai import AI
 
 class AIGA(AI):
-    def __init__(self, config):
+    def __init__(self, config, ai_info):
         super(AIGA, self).__init__(config['ai']['population_size'])
         if self.population_size%2:
             print("Population size must be even!")
@@ -15,9 +18,12 @@ class AIGA(AI):
         self.EPS = config['EPS']
         self.gene_size = self.config['car']['number_of_visions'] + 1
         self.gene_amnt = 4 # Types of movement
-        self.population = self.random_population(self.population_size)
+        if ai_info:
+            self.set_ai_info(ai_info)
+        else:
+            self.population = self.random_population(self.population_size)
+            self.generation = 1
         self.num_generations = config['ai']['num_of_generations']
-        self.generation = 0
         self.verbose = config['verbose']
         self.t_gen_start = time.time()
         self.fps = config['fps']
@@ -32,6 +38,9 @@ class AIGA(AI):
         if self.pop_size_crossover%2:
             self.pop_size_crossover -= 1
         self.pop_size_new = self.population_size - self.pop_size_crossover - self.pop_size_elitism
+
+        self.identifier = "ga_" + self.config["track"] + datetime.now().strftime("__%Y-%d-%m_%H-%M-%S")
+        self.save()
 
     def random_population(self, n):
         """Generate n random individuals."""
@@ -96,10 +105,50 @@ class AIGA(AI):
         return [apply(parent_1, parent_2),
                 apply(parent_2, parent_1)]
 
+    def save(self):
+        """Save data about the AI in specific folder."""
+        folder_path = os.path.join("ga", self.identifier)
+        if not os.path.exists("ga"):
+            os.makedirs("ga")
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+        if self.generation == 0:
+            file_path = os.path.join(
+                folder_path,
+                "config.json"
+            )
+            json.dump(self.config, open(file_path, 'w'))
+        else:
+            ai_info = {
+                'population' : self.population,
+                'generation' : self.generation,
+                'features' : self.features,
+                'fitness' : self.fitness
+            }
+            file_path = os.path.join(
+                folder_path,
+                "gen_" + str(self.generation) + ".json"
+            )
+            json.dump(ai_info, open(file_path, 'w'))
+
+    def load_generation(self, ga_folder_path : str, generation : int):
+        """Loads specified generation from folder ga_folder_path."""
+        load(os.path.join(ga_folder_path, "gen_" + str(generation)))
+
+    def load(self, file_path):
+        """Loads generation saved on json in file_path."""
+        self.load(json.load(open(file_path, 'r')))
+
+    def set_ai_info(self, ai_info):
+        """Sets attributes of class based on ai_info."""
+        self.population = ai_info['population']
+        self.generation = ai_info['generation']
+        self.features = ai_info['features']
+        self.fitness = ai_info['fitness']
+
     def next_generation(self):
         """If the number of generation was achieved, returns False, else,
         generates next generation."""
-        self.generation += 1
         if self.generation == self.num_generations:
             if self.verbose > 0:
                 print("Generation %d. Previous in %.2f s" % (self.generation, time.time() - self.t_gen_start))
@@ -116,7 +165,10 @@ class AIGA(AI):
         sorted_by_fitness = list(zip(self.fitness, self.features, self.population))
         sorted_by_fitness.sort(key=lambda x : (x[0], x[2]))
         if self.verbose > 0:
-            print("Generation %d. Previous in %.2f s" % (self.generation, time.time() - self.t_gen_start))
+            print("Generation %d. Evaluated in %.2f s" % (
+                self.generation,
+                time.time() - self.t_gen_start)
+            )
             qnt_top_5p = max(1, int(self.population_size*0.05))
             top_5p = [(x,y) for x, y, _ in sorted_by_fitness][-qnt_top_5p:]
             to_prt = [( x[0],
@@ -135,14 +187,20 @@ class AIGA(AI):
         pop_elitism = deepcopy([x for _,_,x in sorted_by_fitness][-self.pop_size_elitism:])
         pop_crossover = []
         for i in range(0, self.pop_size_crossover, 2):
-            parent_1, parent_2 = random.choices(self.population, self.fitness, k=2)
+            parent_1, parent_2 = map(
+                deepcopy,
+                random.choices(self.population, self.fitness, k=2)
+            )
             pop_crossover.extend(self.crossover(parent_1, parent_2))
         pop_new = self.random_population(self.pop_size_new)
 
-        self.population = pop_elitism[::-1] + pop_crossover + pop_new
+        self.save()
+
+        self.population = pop_elitism + pop_crossover + pop_new
         self.fitness = None
         self.features = [None for i in range(self.population_size)]
         self.evaluated = 0
         self.t_gen_start = time.time()
+        self.generation += 1
 
         return True

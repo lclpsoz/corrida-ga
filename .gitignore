@@ -1,10 +1,9 @@
 # Specific for this project
 test/
+ga/
+tracks_imgs/
 .vscode/
 *.prof
-*.jpg
-*.jpeg
-*.png
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

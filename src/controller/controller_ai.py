@@ -16,10 +16,11 @@ from ai.ai_manual import AIManual
 from ai.ai_ga import AIGA
 
 class ControllerAI(Controller):
-    def __init__(self, config):
+    def __init__(self, config, ai_info = None):
         super(Controller, self).__init__()
         self.view = View(config)
         self.config = config
+        self.ai_info = ai_info
         pprint(config)
 
     def get_car_data_str(self, car):
@@ -102,7 +103,7 @@ class ControllerAI(Controller):
                 cars[-1]['car'].show_vision = True
 
         if self.config['ai']['type'] == 'ga':
-            ai = AIGA(self.config)
+            ai = AIGA(self.config, self.ai_info)
         else:
             ai = AIManual(self.config)
         for car in cars:

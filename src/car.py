@@ -97,8 +97,6 @@ class Car():
 
         # Start PyGame surface for the car
         self.surface = pygame.Surface((round(self.surface_side), round(self.surface_side)), pygame.SRCALPHA)
-        # self.surface.set_colorkey((0, 255, 0))
-        self.surface.fill((0, 255, 0, 0))
         self.ori_car_structure = []
         self.ori_car_front = []
         self.ori_car_seg_vision = []
@@ -219,7 +217,7 @@ class Car():
 
     def draw(self):
         """Updates surface based on changes in the car shape."""
-        self.surface.fill((0, 0, 0, 0))
+        self.surface = pygame.Surface((round(self.surface_side), round(self.surface_side)), pygame.SRCALPHA)
         pygame.draw.polygon(self.surface, self.car_color, self.car_structure)
         pygame.draw.polygon(self.surface, self.front_color, self.car_front)
         if self.show_vision:

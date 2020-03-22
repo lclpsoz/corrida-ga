@@ -2,11 +2,15 @@ import pygame
 import sys
 import json
 import random
+import os
 
 sys.path.append('src')
 from controller.controller_player import ControllerPlayer
 from controller.controller_ai import ControllerAI
 from interface import Interface
+
+# Exemple of command to reuse GA:
+# python3 main.py src/config.json ga rect_rounded 100 ga/ga_rect_rounded__2020-22-03_14-48-07 32
 
 pygame.init()
 
@@ -38,7 +42,11 @@ if len(sys.argv) > 2 and sys.argv[2] == 'ga':
     if len(sys.argv) > 4:
         config['ai']['population_size'] = int(sys.argv[4])
 
-    game_now = ControllerAI(config)
+    # Specific GA and generation:
+    if len(sys.argv) > 6:
+        config = json.load(open(os.path.join(sys.argv[5], 'config.json'), 'r'))
+        ai_info = json.load(open(os.path.join(sys.argv[5], 'gen_' + sys.argv[6] + '.json'), 'r'))
+    game_now = ControllerAI(config, ai_info)
 else:
     game_now = ControllerPlayer(config)
 game_now.run()
