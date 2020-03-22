@@ -93,20 +93,47 @@ int onSegment(float *a, float *b, float *p) {
 }
 
 // Intersection between segments (a, b) and (c, d).
-int seg_inter(float a[2], float b[2], float c[2], float d[2]) {
+int seg_inter(float a[2], float b[2], float c[2], float d[2], float out[2]) {
     float oa = orient(c, d, a),
     ob = orient(c, d, b),
     oc = orient(a, b, c),
     od = orient(a, b, d);
 
-    if(oa*ob < 0 && oc*od < 0)
+    if(oa*ob < 0 && oc*od < 0) {
+        // out = (a*ob - b*oa) / (ob-oa);
+        out[0] = (a[0]*ob - b[0]*oa) / (ob-oa);
+        out[1] = (a[1]*ob - b[1]*oa) / (ob-oa);
         return 1;
+    }
 
-    if (onSegment(c, d, a) || onSegment(c, d, b) ||
-        onSegment(a, b, c) || onSegment(a, b, d))
+    if(onSegment(c, d, a)) {
+        out = a;
         return 1;
+    }
+    if(onSegment(c, d, b)) {
+        out = b;
+        return 1;
+    }
+    if(onSegment(a, b, c)) {
+        out = c;
+        return 1;
+    }
+    if(onSegment(a, b, d)) {
+        out = d;
+        return 1;
+    }
 
     return 0;
+}
+
+float dist_sq(float a[2], float b[2]) {
+    float dx = a[0]-b[0];
+    float dy = a[1]-b[1];
+    return dx*dx + dy*dy;
+}
+
+float dist(float a[2], float b[2]) {
+    return sqrt(dist_sq(a, b));
 }
 
 // Receive a pointer to segments in a array where every 4 positions
@@ -115,6 +142,7 @@ int seg_inter(float a[2], float b[2], float c[2], float d[2]) {
 // Returns a int 0 or 1 based on that evaluation.
 int *col_circuit_custom(float *segs, int n_segs, float *walls, int n_walls) {
     int *ret = malloc(sizeof(int)*n_segs);
+    float out[2];
     for(int i = 0; i < n_segs; i++) {
         float a[] = {segs[4*i], segs[4*i+1]};
         float b[] = {segs[4*i+2], segs[4*i+3]};
@@ -122,7 +150,7 @@ int *col_circuit_custom(float *segs, int n_segs, float *walls, int n_walls) {
         for(int j = 0; j < n_walls; j++) {
             float c[] = {walls[4*j], walls[4*j+1]};
             float d[] = {walls[4*j+2], walls[4*j+3]};
-            if(seg_inter(a, b, c, d)) {
+            if(seg_inter(a, b, c, d, out)) {
                 // printf("(%f, %f), (%f, %f) AND (%f, %f), (%f, %f)\n",
                 //     a[0], a[1], b[0], b[1], c[0], c[1], d[0], d[1]);
                 ret[i] = 1;
@@ -136,4 +164,36 @@ int *col_circuit_custom(float *segs, int n_segs, float *walls, int n_walls) {
     // putchar('\n');
 
     return ret;
+}
+
+// Receive a point st and an array with n_segs points.
+// Returns array with n_segs floats with distances from
+// st to first wall segment collision.
+float *col_dist_circuit_custom( float *st, float *segs, int n_segs,
+                                float *walls, int n_walls) {
+    float *dists = malloc(sizeof(int)*n_segs);
+    float out[2];
+    for(int i = 0; i < n_segs; i++) {
+        float b[] = {segs[2*i], segs[2*i+1]};
+        dists[i] = 1e9;
+        float mini = 1e18;
+        for(int j = 0; j < n_walls; j++) {
+            float c[] = {walls[4*j], walls[4*j+1]};
+            float d[] = {walls[4*j+2], walls[4*j+3]};
+            if(seg_inter(st, b, c, d, out)) {
+                // printf("(%f, %f), (%f, %f) AND (%f, %f), (%f, %f)\n",
+                //     a[0], a[1], b[0], b[1], c[0], c[1], d[0], d[1]);
+                float d = dist_sq(st, out);
+                if(d < mini)
+                    mini = d;
+            }
+        }
+        dists[i] = sqrt(mini);
+    }
+    // printf("RET IN C = ");
+    // for(int i = 0; i < n_segs; i++)
+    //     printf("%d ", ret[i]);
+    // putchar('\n');
+
+    return dists;
 }

@@ -71,9 +71,17 @@ class ControllerPlayer(Controller):
             
             # Check for collision
             collision = self.track.batch_collision_car([player])[0]
-            col_now = self.track.batch_collision(player.get_points_vision())
-            player.vision = [col == CircuitCircle.COLLISION_WALL for col in col_now]
+            dists_col = self.track.batch_collision_dist(player.get_points_vision())
+            player.vision = [x/player.vision_length for x in dists_col]
 
+            # Draw car
+            player_surface = player.draw()
+            self.view.blit(player_surface, player.get_pos_surface())
+
+            # Update car sector
+            self.track.update_car_sector(player_id, player)
+
+            # Process collision
             if(collision == CircuitCircle.COLLISION_WALL):
                 time_elapsed = datetime.fromtimestamp(self.track.get_current_car_time(player_id))
                 str_time = time_elapsed.strftime("%M:%S:%f")
@@ -99,9 +107,6 @@ class ControllerPlayer(Controller):
                 player.handle_keys()
             player.apply_movement()
 
-            player_surface = player.draw()
-            self.track.update_car_sector(player_id, player)
-            self.view.blit(player_surface, player.get_pos_surface())
             
             # self.view.draw_car_controls(player.get_controls(), [0, 0])
             # self.view.draw_player_data(self.get_car_data_str(player), [0, 60])

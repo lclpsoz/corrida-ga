@@ -79,12 +79,6 @@ class View():
         """Receive list of individuals, vision and speed. Organize the data
         to be presentend on screen."""
         self.population = population
-        for i in range(len(visions)):
-            for j in range(len(visions[i])):
-                if visions[i][j]:
-                    visions[i][j] = 1
-                else:
-                    visions[i][j] = 0
         self.visions = visions
         self.speeds = speeds
 
@@ -123,7 +117,7 @@ class View():
                         color = (255, 0, 0)
                     else:
                         color = (0, 254, 0)
-                    self.draw_text(pos[0], pos[1], str(vision[k]), font, color)
+                    self.draw_text(pos[0], pos[1], str("%.1f" % vision[k]), font, color)
                     self.draw_text(pos[0]+font_size-1, pos[1], "*", font, (0,0,0))
                     self.draw_text(pos[0]+(font_size-1)*2-1, pos[1],
                                         "%+1.1f" % indv[j][k+1],

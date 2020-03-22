@@ -160,6 +160,39 @@ class CircuitCustom(Circuit):
         n_segs_2//=4
         return collisions_wrapper.col_circuit_custom(segs_1, n_segs_1, segs_2, n_segs_2)
 
+    def batch_collision_dist(self, segs_input : list):
+        """Returns a list of distance to the first collision, each position corresponding
+        to the collision with the walls for each segment.
+        segs is expected to be a list of elements in the format: [[x1, y1], [x2, y2]]"""
+        if collisions_wrapper.collisions:
+            ret = []
+            segs_list = []
+            st = segs_input[0][0]
+            for seg in segs_input:
+                segs_list.extend([seg[1][0], seg[1][1]])
+            batch_ret = self.batch_collision_dist_segs(st, segs_list, self.get_walls_list())
+            for i in range(len(segs_input)):
+                ret.append(batch_ret[i])
+
+            # Free memory
+            collisions_wrapper.freeme(batch_ret)
+            return ret
+        else:
+            return [self.collision(shape) for shape in segs_input]
+
+    def batch_collision_dist_segs(self, st, pts, segs):
+        """Receives a point, a list of points and a list of segments.
+        Returns the distance between the point st to the first collision
+        of the segment (st, pts[i]) and any segment in segs_2."""
+        n_pts = len(pts)
+        n_segs = len(segs)
+        st = (ctypes.c_float * 2)(*st)
+        pts = (ctypes.c_float * n_pts)(*pts)
+        segs = (ctypes.c_float * n_segs)(*segs)
+        n_pts//=2
+        n_segs//=4
+        return collisions_wrapper.col_dist_circuit_custom(st, pts, n_pts, segs, n_segs)
+
     def update_car_sector(self, car_id, car):
         """Updates the sector of the car."""
         now = self.car_current_sector[car_id]

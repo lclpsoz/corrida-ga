@@ -28,6 +28,7 @@ class Car():
         self.frame_time = 1/config['fps']
         self.car_width = config['car_width']
         self.car_height = config['car_height']
+        self.vision_length = config['vision_length']
 
         self.set_default_settings()
         self.generate_car_graphics()
@@ -57,7 +58,7 @@ class Car():
         # Acceleration in amount of pixels per iteration
         self.acc_pixels = 0.1
 
-        self.surface_side = 1.4*max(max(config['car_width'], config['car_height']), 2*config['vision_length'])
+        self.surface_side = 1.4*max(max(config['car_width'], config['car_height']), 2*self.vision_length)
         self.center = [round(self.surface_side/2), round(self.surface_side/2)]
         self.x -= self.center[0]
         self.y -= self.center[1]
@@ -85,9 +86,9 @@ class Car():
         # Car Vision
         self.car_seg_vision = []
         self.vision_angles = np.linspace(-90, 90, self.config['number_of_visions'])
-        self.vision = [False for x in range(self.config['number_of_visions'])] # False, no collision
+        self.vision = [1.0 for x in range(self.config['number_of_visions'])] # False, no collision
         self.car_vision_colors = self.config['car_vision_colors']
-        car_seg_vision_base = [self.center[0], self.center[1] + self.config['vision_length']]
+        car_seg_vision_base = [self.center[0], self.center[1] + self.vision_length]
         for angle_vision in self.vision_angles:
             self.car_seg_vision.append(self.rotate_point_degree(self.center, car_seg_vision_base, -angle_vision))
 
@@ -216,16 +217,6 @@ class Car():
             vector_unit = [1, 0]
         return vector + (vector_unit*scalar)
 
-    def update_vision(self, track):
-        """Updates list vision, checking for collision with each vision
-        segment."""
-        cx, cy = self.center
-        for i in range(len(self.car_seg_vision)):
-            x, y = self.car_seg_vision[i]
-            line = LineString( [[self.x + cx, self.y + cy],
-                                [self.x + x, self.y + y]])
-            self.vision[i] = track.collision(line) == Circuit.COLLISION_WALL
-
     def draw(self):
         """Updates surface based on changes in the car shape."""
         self.surface.fill((0, 0, 0, 0))
@@ -233,8 +224,18 @@ class Car():
         pygame.draw.polygon(self.surface, self.front_color, self.car_front)
         if self.show_vision:
             for i in range(len(self.car_seg_vision)):
-                pygame.draw.line(self.surface, self.car_vision_colors[self.vision[i]],
-                    self.center, self.car_seg_vision[i])
+                vector = [self.car_seg_vision[i][0] - self.center[0],
+                            self.car_seg_vision[i][1] - self.center[1]]
+                delta = -(1-self.vision[i])*self.vision_length
+                if delta > 0:
+                    delta = 0
+                vector = self.vector_magnitude_sum(vector, delta)
+                vector[0] += self.center[0]
+                vector[1] += self.center[1]
+                pygame.draw.line(
+                    self.surface, (0, 254, 0),
+                    self.center,
+                    vector)
         return self.surface
 
     def set_friction_multiplier(self, friction_multiplier):

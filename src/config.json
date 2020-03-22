@@ -10,8 +10,8 @@
     "track" : "ellipse",
     "car" :
     {
-        "number_of_visions" : 18,
-        "vision_length" : 80,
+        "number_of_visions" : 17,
+        "vision_length" : 800,
         "car_width" : 8,
         "car_height" : 16,
         "amount_graphics" : 360,

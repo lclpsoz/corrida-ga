@@ -122,16 +122,16 @@ class ControllerAI(Controller):
             for i in range(num_of_cars):
                 cars[i]['collision'] = batch_col[i]
 
-            # Batch check collision for vision in all cars:
+            # Batch update vision in all cars:
             list_shapes = []
             for car in cars:
                 list_shapes.extend(car['car'].get_points_vision())
-            batch_col = self.track.batch_collision(list_shapes)
+            batch_col = self.track.batch_collision_dist(list_shapes)
             p_now = 0
             for car in cars:
-                col_now = batch_col[p_now : p_now + len(car['car'].vision)]
+                dists_col = batch_col[p_now : p_now + len(car['car'].vision)]
                 p_now += len(car['car'].vision)
-                car['car'].vision = [col == CircuitCircle.COLLISION_WALL for col in col_now]
+                car['car'].vision = [x/car['car'].vision_length for x in dists_col]
 
             # Set information about first car on view
             visions = []
@@ -145,6 +145,14 @@ class ControllerAI(Controller):
             for car in cars[1:] + cars[0:1]:
                 if not car['active']:
                     continue
+                # Draw Car
+                car_surface = car['car'].draw()
+                self.view.blit(car_surface, car['car'].get_pos_surface())
+                # Update car sector
+                self.track.update_car_sector(car['id'], car['car'])
+                # Update delta_pixels history:
+                delta_pixels_hist[car['id']].popleft()
+                delta_pixels_hist[car['id']].append(car['car'].delta_pixels)
 
                 car['car'].movement = ai.calc_movement(car['id'], car['car'].vision, car['car'].get_speed())
                 car['car'].apply_movement()
@@ -164,16 +172,7 @@ class ControllerAI(Controller):
 
                 if car['active'] and sum(delta_pixels_hist[car['id']]) == 0:
                     self.deactivate_car(car, ai)
-
-                if car['active']:
-                    # Update delta_pixels history:
-                    delta_pixels_hist[car['id']].popleft()
-                    delta_pixels_hist[car['id']].append(car['car'].delta_pixels)
                     
-                    # Draw Car
-                    car_surface = car['car'].draw()
-                    self.track.update_car_sector(car['id'], car['car'])
-                    self.view.blit(car_surface, car['car'].get_pos_surface())
 
             # self.view.draw_car_ai_eval(cars, ai.features, [0, 60], True)
             self.view.update()
