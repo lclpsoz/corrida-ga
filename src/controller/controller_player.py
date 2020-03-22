@@ -71,7 +71,8 @@ class ControllerPlayer(Controller):
             
             # Check for collision
             collision = self.track.batch_collision_car([player])[0]
-            player.update_vision(self.track)
+            col_now = self.track.batch_collision(player.get_points_vision())
+            player.vision = [col == CircuitCircle.COLLISION_WALL for col in col_now]
 
             if(collision == CircuitCircle.COLLISION_WALL):
                 time_elapsed = datetime.fromtimestamp(self.track.get_current_car_time(player_id))

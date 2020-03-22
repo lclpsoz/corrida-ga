@@ -45,74 +45,95 @@ int *col_circuit_ellipse(float *x, float *y, float *center, float *outter,
     return ret;
 }
 
-#define EPS 0.0001
+//// Custom collision based on cp-geo (Handbook of geometry for
+//// competitive programmers).
 
-double cross(double x1, double y1, double x2, double y2)
-{
-    return (x1 * y2) - (x2 * y1);
+// Return the cross operation on points represented  by
+// float array.
+float cross_pointer(float *v, float *w) {
+    return v[0]*w[1] - v[1]*w[0];
 }
 
-int sign(double x)
-{
-    if(x < -EPS) return -1;
-    else if(fabs(x) < EPS) return 0;
-    else return 1;
+// Return float based on the orientation of the three points
+float orient(float *a, float *b, float *c) {
+    b[0] -= a[0];
+    b[1] -= a[1];
+    c[0] -= a[0];
+    c[1] -= a[1];
+    float ret = cross_pointer(b, c);
+    b[0] += a[0];
+    b[1] += a[1];
+    c[0] += a[0];
+    c[1] += a[1];
+
+    return ret;
 }
 
-// // Receives n points, x and y values, and its sector, to be evaluated as
-// // colliding or not. Evaluate each point individually.
-int **col_circuit_custom(float *x, float *y, int num_sectors, float *outter_x, float *outter_y,
-                            float *inner_x, float *inner_y, float wall, float slow_area, int n) {
-    int **ret = malloc(sizeof(int*)*2);
-    ret[0] = malloc(sizeof(int)*n); // sector
-    ret[1] = malloc(sizeof(int)*n); // collision
+float dot(float *a, float *b) {
+    return a[0]*b[0] + a[1]*b[1];
+}
 
-    for(int i = 0; i < n; i++)
-        ret[0][i] = -1;
+int inDisk(float *a, float *b, float *p) {
+    a[0] -= p[0];
+    a[1] -= p[1];
+    b[0] -= p[0];
+    b[1] -= p[1];
+    int ret = dot(a, b) <= 0;
+    a[0] += p[0];
+    a[1] += p[1];
+    b[0] += p[0];
+    b[1] += p[1];
 
-    for(int i = 0; i < n; i++) {
-        for(int sector = 0; sector < num_sectors; sector++) {
-            float outter_ax = outter_x[sector];
-            float outter_ay = -outter_y[sector];
-            float outter_bx = outter_x[sector + 1];
-            float outter_by = -outter_y[sector + 1];
+    return ret;
+}
 
-            float inner_ax = inner_x[sector];
-            float inner_ay = -inner_y[sector];
-            float inner_bx = inner_x[sector + 1];
-            float inner_by = -inner_y[sector + 1];
-            
-            // test collision with the sector segment 1
-            int c_sector1 = sign(cross(outter_ax - inner_ax, outter_ay - inner_ay,
-                                    x[i] - inner_ax, y[i] - inner_ay));
-                         
-            // test collision with the sector segment 2
-            int c_sector2 = sign(cross(outter_bx - inner_bx, outter_by - inner_by,
-                                    x[i] - inner_bx, y[i] - inner_by));
+// Detects if point p is on segment (a, b)
+int onSegment(float *a, float *b, float *p) {
+    return orient(a, b, p) == 0 && inDisk(a, b, p);
+}
 
-            if(c_sector1 == c_sector2)
-                continue;
+// Intersection between segments (a, b) and (c, d).
+int seg_inter(float a[2], float b[2], float c[2], float d[2]) {
+    float oa = orient(c, d, a),
+    ob = orient(c, d, b),
+    oc = orient(a, b, c),
+    od = orient(a, b, d);
 
-            // test collision with the outter wall
-            int c_outter = sign(cross(outter_bx - outter_ax, outter_by - outter_ay,
-                                    x[i] - outter_ax, y[i] - outter_ay));
-            // test collision with the inner wall
-            int c_inner = sign(cross(inner_bx - inner_ax, inner_by - inner_ay,
-                                    x[i] - inner_ax, y[i] - inner_ay));
+    if(oa*ob < 0 && oc*od < 0)
+        return 1;
 
-            if(c_inner == c_outter)
-                continue;
+    if (onSegment(c, d, a) || onSegment(c, d, b) ||
+        onSegment(a, b, c) || onSegment(a, b, d))
+        return 1;
 
-            ret[0][i] = sector;
+    return 0;
+}
+
+// Receive a pointer to segments in a array where every 4 positions
+// is a segment.
+// Evaluate for each segment on segs if it collide with any wall.
+// Returns a int 0 or 1 based on that evaluation.
+int *col_circuit_custom(float *segs, int n_segs, float *walls, int n_walls) {
+    int *ret = malloc(sizeof(int)*n_segs);
+    for(int i = 0; i < n_segs; i++) {
+        float a[] = {segs[4*i], segs[4*i+1]};
+        float b[] = {segs[4*i+2], segs[4*i+3]};
+        ret[i] = 0;
+        for(int j = 0; j < n_walls; j++) {
+            float c[] = {walls[4*j], walls[4*j+1]};
+            float d[] = {walls[4*j+2], walls[4*j+3]};
+            if(seg_inter(a, b, c, d)) {
+                // printf("(%f, %f), (%f, %f) AND (%f, %f), (%f, %f)\n",
+                //     a[0], a[1], b[0], b[1], c[0], c[1], d[0], d[1]);
+                ret[i] = 1;
+                break;
+            }
         }
     }
-
-    for(int i = 0; i < n; i++) {
-        if(ret[0][i] == -1)
-            ret[1][i] = COLLISION_WALL;
-        else
-            ret[1][i] = COLLISION_NONE;
-    }
+    // printf("RET IN C = ");
+    // for(int i = 0; i < n_segs; i++)
+    //     printf("%d ", ret[i]);
+    // putchar('\n');
 
     return ret;
 }
