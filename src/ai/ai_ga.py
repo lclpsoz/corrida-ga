@@ -61,7 +61,10 @@ class AIGA(AI):
             total = gene[0]*speed
             for j in range(1, self.gene_size):
                 total += gene[j]*vision[j-1]
-            mov.append(total > self.EPS)
+            if total > self.EPS:
+                mov.append(total)
+            else:
+                mov.append(0)
         return mov
 
     def calc_fitness(self):
