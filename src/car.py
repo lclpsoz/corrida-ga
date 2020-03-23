@@ -25,7 +25,6 @@ class Car():
         if 360%self.amount_graphics:
             print("360%amount_graphics != 0")
             exit(0)
-        self.frame_time = 1/config['fps']
         self.car_width = config['car_width']
         self.car_height = config['car_height']
         self.vision_length = config['vision_length']
@@ -281,11 +280,13 @@ class Car():
         return list_vision
 
     def get_speed_squared(self):
-        """Returns the speed of the car in meters per second squared."""
-        return self.delta_pixels/self.frame_time
+        """Returns the speed of the car in meters per second squared. Approximated
+        considering 120 FPS."""
+        return 120 * self.delta_pixels
     
     def get_speed(self):
-        """Returns the speed of the car in meters per second."""
+        """Returns the speed of the car in meters per second. Approximated
+        considering 120 FPS."""
         return math.sqrt(self.get_speed_squared())
 
     def get_angle(self):

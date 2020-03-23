@@ -45,6 +45,7 @@ print("Available circuits:", available_circuits)
 
 options = {
     '-track' : ['track', str],
+    '-fps' : ['fps', int],
     '-pop_sz' : ['ai', 'population_size', int],
     '-mut_type' : ['ai', 'mutation_type', str],
     '-mut_chance' : ['ai', 'mutation_chance', float],
@@ -55,7 +56,9 @@ options = {
     '-player' : ['PLAYER'],
     '-reuse' : ['LOAD'],
     '-tv' : ['SET', 'graphics', True],
-    '-notv' : ['SET', 'graphics', False]
+    '-notv' : ['SET', 'graphics', False],
+    '-save' : ['SET', 'ai', 'save', True],
+    '-nosave' : ['SET', 'ai', 'save', False]
 }
 
 game_now = "GA"
@@ -67,6 +70,7 @@ while i < len(sys.argv):
     elif now[0] == 'LOAD':
         config = json.load(open(os.path.join(sys.argv[i+1], 'config.json'), 'r'))
         ai_info = json.load(open(os.path.join(sys.argv[i+1], 'gen_' + sys.argv[i+2] + '.json'), 'r'))
+        config['reuse'] = sys.argv[i+1]
         game_now = "GA_INFO"
         i += 2
     elif now[0] == 'SET':
