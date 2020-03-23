@@ -35,6 +35,8 @@ class Car():
         self.update_car_angle()
 
         self.show_vision = show_vision
+        
+        self.mov_norm = 2
 
     def set_default_settings(self):
         config = self.config
@@ -117,10 +119,10 @@ class Car():
         turn_angle = 0
         if self.movement[self.MOVE_LEFT] > 0:
             if(self.delta_pixels > self.EPS):
-                turn_angle += -turn_angle_intensity*min(1, self.movement[self.MOVE_LEFT]/2)
+                turn_angle += -turn_angle_intensity*min(1, self.movement[self.MOVE_LEFT]/self.mov_norm)
         else:
             if(self.delta_pixels > self.EPS):
-                turn_angle += turn_angle_intensity*min(1, -self.movement[self.MOVE_LEFT]/2)
+                turn_angle += turn_angle_intensity*min(1, -self.movement[self.MOVE_LEFT]/self.mov_norm)
 
         self.direction = self.rotate_point_degree((0, 0), self.direction, turn_angle)
         self.update_car_angle()
@@ -130,11 +132,11 @@ class Car():
         self.apply_turn()
         
         if self.movement[self.MOVE_FORWARD] > 0:
-            self.delta_pixels += self.acc_pixels*min(1, self.movement[self.MOVE_FORWARD]/2)
+            self.delta_pixels += self.acc_pixels*min(1, self.movement[self.MOVE_FORWARD]/self.mov_norm)
 
         # Breaking
         else:
-            brk = 1.5*self.acc_pixels*min(1, -self.movement[self.MOVE_FORWARD]/2)
+            brk = 1.5*self.acc_pixels*min(1, -self.movement[self.MOVE_FORWARD]/self.mov_norm)
             self.delta_pixels = max(0, self.delta_pixels-brk)
 
         # Apply acceleration
@@ -153,7 +155,17 @@ class Car():
     def handle_keys(self):
         """Updates movement based on pressed key(s)."""
         key = pygame.key.get_pressed()
-        self.movement = [key[pygame.K_UP], key[pygame.K_DOWN], key[pygame.K_LEFT], key[pygame.K_RIGHT]]
+        self.movement = [0, 0, 0, 0]
+        if key[pygame.K_UP]:
+            self.movement[0] = self.mov_norm
+        elif key[pygame.K_DOWN]:
+            self.movement[0] = -self.mov_norm
+        if key[pygame.K_LEFT]:
+            self.movement[2] = self.mov_norm
+        elif key[pygame.K_RIGHT]:
+            self.movement[2] = -self.mov_norm
+        
+        return self.movement
 
     def update_car_angle_exact(self, angle):
         """Updates car graphics by the angle parameter in degrees. Rotates

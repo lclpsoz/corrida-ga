@@ -31,6 +31,11 @@ class AIGA(AI):
             self.max_frames = config['ai']['max_frames']
         else:
             self.max_frames = config["circuit_" + config['track']]['max_frames']
+        if not 'mutation_type' in config['ai'] or \
+            config['ai']['mutation_type'] == 'simple':
+            self.mutation = self.mutation_simple
+        else:
+            self.mutation = self.mutation_gradient
         self.mutation_chance = config['ai']['mutation_chance']
         self.mutation_factor = config['ai']['mutation_factor']
         self.pop_size_elitism = int(round(config['ai']["proportion_elitism"] * self.population_size))
@@ -69,11 +74,16 @@ class AIGA(AI):
         self.fitness = []
         for i in range(self.population_size):
             feat = self.features[i]
-            self.fitness.append(100*feat['perc_of_sectors'] +
-                (self.max_frames - feat['amount_frames'])/(2*self.max_frames))
-
-    def mutation(self, indv):
-        """Apply mutation to indv in place."""
+            if feat['perc_of_sectors'] < 1.0-self.EPS:
+                self.fitness.append(100*feat['perc_of_sectors'] +
+                    (self.max_frames - feat['amount_frames'])/(2*self.max_frames))
+            else:
+                self.fitness.append(100*feat['perc_of_sectors'] +
+                    (self.max_frames - feat['amount_frames']))
+    def mutation_simple(self, indv):
+        """Apply mutation to indv in place. Work by adding a random value in the
+        interval [-self.mutation_factor, self.mutation_factor] to each position
+        and aplying clamp so each value is in the range [-1, 1]."""
         for j in range(self.gene_amnt):
             for k in range(self.gene_size):
                 if random.random() < self.mutation_chance:
@@ -82,6 +92,55 @@ class AIGA(AI):
                         indv[j][k] = 1
                     elif indv[j][k] < -1:
                         indv[j][k] = -1
+
+    def clamp(self, x, mini, maxi):
+        """Apply clamp to x."""
+        if x > maxi:
+            return maxi
+        elif x < mini:
+            return mini
+        return x
+
+    def mutation_gradient(self, indv):
+        """Apply mutation to indv in place. There's two type of mutation in this
+        function, the first is applied to speed, and it's equivalent to
+        mutation_simple, the second is for the rest of the gene, that is
+        responsible for vision, and works by setting three points, left, center
+        and right and applying a random value to this position that degredes
+        as it is spread to all it neighbours."""
+        for i in range(self.gene_amnt):
+            indv[i][0] += random.uniform(-self.mutation_factor, self.mutation_factor)
+            indv[i][0] = clamp(indv[j][0], -1, 1)
+
+            left = 1
+            if random.random() < self.mutation_chance:
+                div = 1
+                mut = random.uniform(-self.mutation_factor, self.mutation_factor)
+                for j in range (left, self.gene_size):
+                    indv[i][j] += mut/div
+                    indv[i][j] = clamp(indv[i][j], -1, 1)
+                    div *= 2
+
+            center = self.config['car']['number_of_visions']//2 + 1
+            if random.random() < self.mutation_chance:
+                div = 1
+                mut = random.uniform(-self.mutation_factor, self.mutation_factor)
+                for j in range (self.gene_size + 1):
+                    indv[i][center+j] += mut/div
+                    indv[i][center+j] = clamp(indv[i][center+j], -1, 1)
+                    if j:
+                        indv[i][center-j] += mut/div
+                        indv[i][center-j] = clamp(indv[i][center-j], -1, 1)
+                    div *= 2
+
+            right = self.config['car']['number_of_visions']
+            if random.random() < self.mutation_chance:
+                div = 1
+                mut = random.uniform(-self.mutation_factor, self.mutation_factor)
+                for j in range (right, left, -1):
+                    indv[i][j] += mut/div
+                    indv[i][j] = clamp(indv[i][j], -1, 1)
+                    div *= 2
 
     def crossover(self, parent_1, parent_2):
         """Returns two individuals, result of the crossover."""
@@ -100,6 +159,7 @@ class AIGA(AI):
                 for k in range(mid_left+1, mid_right):
                     indv[i][k] = p_2[i][k]
 
+            self.mutation(indv)
             return indv
 
         return [apply(parent_1, parent_2),
