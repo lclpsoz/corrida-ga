@@ -141,10 +141,16 @@ class AIGA(AI):
 
     def set_ai_info(self, ai_info):
         """Sets attributes of class based on ai_info."""
-        self.population = ai_info['population']
         self.generation = ai_info['generation']
-        self.features = ai_info['features']
-        self.fitness = ai_info['fitness']
+        if len(ai_info['population']) >= self.population_size:
+            self.population = [ai_info['population'][-i - 1] for i in range(self.population_size)]
+            self.features = [ai_info['features'][-i - 1] for i in range(self.population_size)]
+            self.fitness = [ai_info['fitness'][-i - 1] for i in range(self.population_size)]
+        else:
+            sz_new = self.population_size - len(ai_info['population'])
+            self.population = ai_info['population'] + self.random_population(sz_new)
+            self.features = ai_info['features'] + [None for i in range(sz_new)]
+            self.fitness = None
 
     def next_generation(self):
         """If the number of generation was achieved, returns False, else,
@@ -188,6 +194,10 @@ class AIGA(AI):
             )
             pop_crossover.extend(self.crossover(parent_1, parent_2))
         pop_new = self.random_population(self.pop_size_new)
+
+        self.fitness = [x for x,_,_ in sorted_by_fitness]
+        self.features = [x for _,x,_ in sorted_by_fitness]
+        self.population = [x for _,_,x in sorted_by_fitness]
 
         self.save()
 
