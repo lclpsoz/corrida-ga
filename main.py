@@ -17,10 +17,12 @@ from interface import Interface
 # python3 main.py src/config.json ga -v [track_name] [population_size]
 # GA not visible trainning:
 # python3 main.py src/config.json ga -notv [track_name] [population_size]
+# Warning! When using -reuse, must use it just after config.json, otherwise
+# it will overwrite the commands before.
 # reuse GA:
-# python3 main.py src/config.json ga -notv -reuse [ga path] [generation]
+# python3 main.py src/config.json ga -reuse [ga path] [generation]
 # reuse GA in another circuit:
-# python3 main.py src/config.json ga -notv -reuse [ga path] [generation] [track_name] [population_size]
+# python3 main.py src/config.json ga -reuse [ga path] [generation] [track_name] [population_size]
 
 pygame.init()
 
@@ -43,44 +45,51 @@ for x in config.keys():
         available_circuits.append('_'.join(str(x).split('_')[1:]))
 print("Available circuits:", available_circuits)
 
-if len(sys.argv) > 2 and sys.argv[2] == 'ga':
+options = {
+    '-track' : ['track', str],
+    '-pop_sz' : ['ai', 'population_size', int],
+    '-mut_type' : ['ai', 'mutation_type', str],
+    '-mut_chance' : ['ai', 'mutation_chance', float],
+    '-mut_factor' : ['ai', 'mutation_factor', float],
+    '-num_gen' : ['ai', 'num_of_generations', int],
+    '-max_frames' : ['ai', 'max_frames', int],
 
-    if len(sys.argv) > 4:
-        # Specific GA and generation:
-        if sys.argv[4] == '-reuse':
-            config = json.load(open(os.path.join(sys.argv[5], 'config.json'), 'r'))
-            ai_info = json.load(open(os.path.join(sys.argv[5], 'gen_' + sys.argv[6] + '.json'), 'r'))
-            # Custom track:
-            if len(sys.argv) > 7:
-                config['track'] = sys.argv[7]
-            #  Custom population size:
-            if len(sys.argv) > 8:
-                config['ai']['population_size'] = int(sys.argv[8])
-        else:
-            # Custom track:
-            config['track'] = sys.argv[4]
-            #  Custom population size:
-            if len(sys.argv) > 5:
-                config['ai']['population_size'] = int(sys.argv[5])
+    '-player' : ['PLAYER'],
+    '-reuse' : ['LOAD'],
+    '-tv' : ['SET', 'graphics', True],
+    '-notv' : ['SET', 'graphics', False]
+}
 
-    # visibility
-    if len(sys.argv) > 3:
-        if sys.argv[3] == '-v':
-            config['graphics'] = True
-        elif sys.argv[3] == '-notv':
-            config['graphics'] = False
-        else:
-            assert(False)
-    
-    if len(sys.argv) > 4 and sys.argv[4] == '-reuse':
-        game_now = ControllerAI(config, ai_info)
+game_now = "GA"
+i = 2
+while i < len(sys.argv):
+    now = options[sys.argv[i]]
+    if now[0] == 'PLAYER':
+        game_now = "PLAYER"
+    elif now[0] == 'LOAD':
+        config = json.load(open(os.path.join(sys.argv[i+1], 'config.json'), 'r'))
+        ai_info = json.load(open(os.path.join(sys.argv[i+1], 'gen_' + sys.argv[i+2] + '.json'), 'r'))
+        game_now = "GA_INFO"
+        i += 2
+    elif now[0] == 'SET':
+        cnf = config
+        for j in range(1, len(now)-2):
+            cnf = cnf[now[j]]
+        cnf[now[-2]] = now[-1]
     else:
-        game_now = ControllerAI(config)
+        cnf = config
+        for j in range(0, len(now)-2):
+            cnf = cnf[now[j]]
+        cnf[now[-2]] = now[-1](sys.argv[i+1])
+        i+=1
+    i+=1
+if game_now == "GA":
+    game_now = ControllerAI(config)
+elif game_now == "GA_INFO":
+    game_now = ControllerAI(config, ai_info)
 else:
-    config['graphics'] = True
-    if len(sys.argv) > 2:
-        config['track'] = sys.argv[2]
     game_now = ControllerPlayer(config)
+
 game_now.run()
 
 pygame.quit()

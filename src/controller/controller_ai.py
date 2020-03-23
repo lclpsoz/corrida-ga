@@ -167,16 +167,14 @@ class ControllerAI(Controller):
                 else:
                     car['car'].set_friction_multiplier(1)
                 
-                if self.track.finished(car['id']) or \
-                        (car['active'] and \
-                            self.track.get_car_num_frames(car['id'], self.view.num_frame) == \
+                if car['active'] and (self.track.finished(car['id']) or \
+                        self.track.get_car_num_frames(car['id'], self.view.num_frame) == \
                                 ai.max_frames):
                     self.deactivate_car(car, ai)
 
                 if self.view.num_frame_now > 15 and car['active'] and sum(delta_pixels_hist[car['id']]) < 0.5:
                     self.deactivate_car(car, ai)
                     
-
             # self.view.draw_car_ai_eval(cars, ai.features, [0, 60], True)
             self.view.update()
 

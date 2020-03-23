@@ -204,12 +204,12 @@ class AIGA(AI):
         self.generation = ai_info['generation']
         if len(ai_info['population']) >= self.population_size:
             self.population = [ai_info['population'][-i - 1] for i in range(self.population_size)]
-            self.features = [ai_info['features'][-i - 1] for i in range(self.population_size)]
-            self.fitness = [ai_info['fitness'][-i - 1] for i in range(self.population_size)]
+            self.features = [None for i in range(self.population_size)]
+            self.fitness = None
         else:
             sz_new = self.population_size - len(ai_info['population'])
             self.population = ai_info['population'] + self.random_population(sz_new)
-            self.features = ai_info['features'] + [None for i in range(sz_new)]
+            self.features = [None for i in range(self.population_size)]
             self.fitness = None
 
     def next_generation(self):
@@ -261,6 +261,11 @@ class AIGA(AI):
 
         self.save()
 
+        if self.verbose > 1:
+            for i in range(self.population_size):
+                print(self.population[i], self.features[i], self.fitness[i])
+        if self.verbose > 0:
+            print("")
         self.population = pop_elitism + pop_crossover + pop_new
         self.fitness = None
         self.features = [None for i in range(self.population_size)]
@@ -268,10 +273,5 @@ class AIGA(AI):
         self.t_gen_start = time.time()
         self.generation += 1
 
-        if self.verbose > 1:
-            for i in range(self.population_size):
-                print(self.population[i], self.features[i], self.fitness[i])
-        if self.verbose > 0:
-            print("")
 
         return True
