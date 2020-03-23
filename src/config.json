@@ -59,7 +59,7 @@
         "wall" : 2,
         "start_angle" : 0,
         "run_maker": false,
-        "max_frames" : 1000
+        "max_frames" : 1400
     },
     "circuit_rect_rounded" :
     {
@@ -86,7 +86,7 @@
         "wall" : 2,
         "start_angle" : 0,
         "run_maker": false,
-        "max_frames" : 1200
+        "max_frames" : 2000
     },
     "circuit_monza" :
     {

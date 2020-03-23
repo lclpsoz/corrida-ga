@@ -70,6 +70,7 @@ while i < len(sys.argv):
     elif now[0] == 'LOAD':
         config = json.load(open(os.path.join(sys.argv[i+1], 'config.json'), 'r'))
         ai_info = json.load(open(os.path.join(sys.argv[i+1], 'gen_' + sys.argv[i+2] + '.json'), 'r'))
+        config['reuse'] = sys.argv[i+1]
         game_now = "GA_INFO"
         i += 2
     elif now[0] == 'SET':
