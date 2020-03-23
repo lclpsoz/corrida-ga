@@ -12,17 +12,15 @@ from interface import Interface
 # Interface:
 # python3 main.py
 # Player Solo:
-# python3 main.py src/config.json [track_name]
-# GA visible trainning:
-# python3 main.py src/config.json ga -v [track_name] [population_size]
+# python3 main.py src/config.json -player
 # GA not visible trainning:
-# python3 main.py src/config.json ga -notv [track_name] [population_size]
-# Warning! When using -reuse, must use it just after config.json, otherwise
+# python3 main.py src/config.json -notv
+# !!Warning!! When using -reuse, must use it just after config.json, otherwise
 # it will overwrite the commands before.
 # reuse GA:
-# python3 main.py src/config.json ga -reuse [ga path] [generation]
+# python3 main.py src/config.json -reuse [ga path] [generation]
 # reuse GA in another circuit:
-# python3 main.py src/config.json ga -reuse [ga path] [generation] [track_name] [population_size]
+# python3 main.py src/config.json -reuse [ga path] [generation] -track [track_name]
 
 pygame.init()
 
