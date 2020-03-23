@@ -110,7 +110,7 @@ class AIGA(AI):
         as it is spread to all it neighbours."""
         for i in range(self.gene_amnt):
             indv[i][0] += random.uniform(-self.mutation_factor, self.mutation_factor)
-            indv[i][0] = clamp(indv[j][0], -1, 1)
+            indv[i][0] = clamp(indv[i][0], -1, 1)
 
             left = 1
             if random.random() < self.mutation_chance:
