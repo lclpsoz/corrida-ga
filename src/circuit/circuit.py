@@ -309,8 +309,8 @@ class Circuit(object):
         nxt_sector = True
         while nxt_sector and now < self.num_of_sectors:
             nxt_sector = False
-            for seg in segs:
-                if LineString(self.sectors[now]).intersects(LineString(seg)):
+            for s1, s2 in segs:
+                if self.seg_inter(self.sectors[now][0], self.sectors[now][1], s1, s2)[0]:
                     nxt_sector = True
                     break
             if nxt_sector:
