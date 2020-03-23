@@ -46,7 +46,9 @@ if len(sys.argv) > 2 and sys.argv[2] == 'ga':
     if len(sys.argv) > 6:
         config = json.load(open(os.path.join(sys.argv[5], 'config.json'), 'r'))
         ai_info = json.load(open(os.path.join(sys.argv[5], 'gen_' + sys.argv[6] + '.json'), 'r'))
-    game_now = ControllerAI(config, ai_info)
+        game_now = ControllerAI(config, ai_info)
+    else:
+        game_now = ControllerAI(config)
 else:
     game_now = ControllerPlayer(config)
 game_now.run()

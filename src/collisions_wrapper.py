@@ -20,11 +20,10 @@ if collisions:
     
     # Collision distance for  circuit
     col_dist_circuit = col.col_dist_circuit
-    col_dist_circuit.argtypes = [ctypes.POINTER(ctypes.c_float),
-                                        ctypes.POINTER(ctypes.c_float),
-                                        ctypes.c_int,
-                                        ctypes.POINTER(ctypes.c_float),
-                                        ctypes.c_int]
+    col_dist_circuit.argtypes = [   ctypes.POINTER(ctypes.c_float),
+                                    ctypes.c_int,
+                                    ctypes.POINTER(ctypes.c_float),
+                                    ctypes.c_int]
     col_dist_circuit.restype = ctypes.POINTER(ctypes.c_float)
 
     # Free memory of array

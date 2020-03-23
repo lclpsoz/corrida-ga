@@ -122,14 +122,14 @@ int *col_circuit(float *segs, int n_segs, float *walls, int n_walls) {
     for(int i = 0; i < n_segs; i++) {
         float a[] = {segs[4*i], segs[4*i+1]};
         float b[] = {segs[4*i+2], segs[4*i+3]};
-        ret[i] = 0;
+        ret[i] = COLLISION_NONE;
         for(int j = 0; j < n_walls; j++) {
             float c[] = {walls[4*j], walls[4*j+1]};
             float d[] = {walls[4*j+2], walls[4*j+3]};
             if(seg_inter(a, b, c, d, out)) {
                 // printf("(%f, %f), (%f, %f) AND (%f, %f), (%f, %f)\n",
                 //     a[0], a[1], b[0], b[1], c[0], c[1], d[0], d[1]);
-                ret[i] = 1;
+                ret[i] = COLLISION_WALL;
                 break;
             }
         }
@@ -145,21 +145,24 @@ int *col_circuit(float *segs, int n_segs, float *walls, int n_walls) {
 // Receive a point st and an array with n_segs points.
 // Returns array with n_segs floats with distances from
 // st to first wall segment collision.
-float *col_dist_circuit( float *st, float *segs, int n_segs,
-                                float *walls, int n_walls) {
+float *col_dist_circuit(float *segs, int n_segs,
+                        float *walls, int n_walls) {
     float *dists = malloc(sizeof(int)*n_segs);
     float out[2];
+    // printf("st = %.2f %.2f\n", st[0], st[1]);
     for(int i = 0; i < n_segs; i++) {
-        float b[] = {segs[2*i], segs[2*i+1]};
+        float a[] = {segs[4*i], segs[4*i+1]};
+        float b[] = {segs[4*i+2], segs[4*i+3]};
+        // printf("%d: %.3f %.3f\n", i, b[0], b[1]);
         dists[i] = 1e9;
         float mini = 1e18;
         for(int j = 0; j < n_walls; j++) {
             float c[] = {walls[4*j], walls[4*j+1]};
             float d[] = {walls[4*j+2], walls[4*j+3]};
-            if(seg_inter(st, b, c, d, out)) {
+            if(seg_inter(a, b, c, d, out)) {
                 // printf("(%f, %f), (%f, %f) AND (%f, %f), (%f, %f)\n",
                 //     a[0], a[1], b[0], b[1], c[0], c[1], d[0], d[1]);
-                float d = dist_sq(st, out);
+                float d = dist_sq(a, out);
                 if(d < mini)
                     mini = d;
             }

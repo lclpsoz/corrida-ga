@@ -112,11 +112,11 @@ class AIGA(AI):
             os.makedirs("ga")
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
-        if self.generation == 0:
-            file_path = os.path.join(
-                folder_path,
-                "config.json"
-            )
+        file_path = os.path.join(
+            folder_path,
+            "config.json"
+        )
+        if self.generation == 0 or not os.path.exists(file_path):
             json.dump(self.config, open(file_path, 'w'))
         else:
             ai_info = {
@@ -178,13 +178,8 @@ class AIGA(AI):
             print("\tBest fitness: %.2f" % max(self.fitness))
             print("\tAvr fitness: %.2f" % (sum(self.fitness)/self.population_size))
             print("\tWorst fitness: %.2f" % min(self.fitness))
-        if self.verbose > 1:
-            for i in range(self.population_size):
-                print(self.population[i], self.features[i], self.fitness[i])
-        if self.verbose > 0:
-            print("")
 
-        pop_elitism = deepcopy([x for _,_,x in sorted_by_fitness][-self.pop_size_elitism:])
+        pop_elitism = deepcopy([x for _,_,x in sorted_by_fitness][-self.pop_size_elitism:])[::-1]
         pop_crossover = []
         for i in range(0, self.pop_size_crossover, 2):
             parent_1, parent_2 = map(
@@ -202,5 +197,11 @@ class AIGA(AI):
         self.evaluated = 0
         self.t_gen_start = time.time()
         self.generation += 1
+
+        if self.verbose > 1:
+            for i in range(self.population_size):
+                print(self.population[i], self.features[i], self.fitness[i])
+        if self.verbose > 0:
+            print("")
 
         return True
