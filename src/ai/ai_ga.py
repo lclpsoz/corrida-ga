@@ -58,13 +58,10 @@ class AIGA(AI):
         indv = self.population[car_id]
         for i in range(self.gene_amnt):
             gene = indv[i]
-            total = gene[0]*speed
+            total = (gene[0]*speed)/self.config['car']['number_of_visions']
             for j in range(1, self.gene_size):
                 total += gene[j]*vision[j-1]
-            if total > self.EPS:
-                mov.append(total)
-            else:
-                mov.append(0)
+            mov.append(total)
         return mov
 
     def calc_fitness(self):

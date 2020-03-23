@@ -115,12 +115,12 @@ class Car():
         # Apply turn to the car based on list movement
         turn_angle_intensity = max(2.25, (16 - self.delta_pixels)/3)
         turn_angle = 0
-        if self.movement[self.MOVE_LEFT]:
+        if self.movement[self.MOVE_LEFT] > 0:
             if(self.delta_pixels > self.EPS):
-                turn_angle += -turn_angle_intensity
-        if self.movement[self.MOVE_RIGHT]:
+                turn_angle += -turn_angle_intensity*min(1, self.movement[self.MOVE_LEFT]/2)
+        else:
             if(self.delta_pixels > self.EPS):
-                turn_angle += turn_angle_intensity
+                turn_angle += turn_angle_intensity*min(1, -self.movement[self.MOVE_LEFT]/2)
 
         self.direction = self.rotate_point_degree((0, 0), self.direction, turn_angle)
         self.update_car_angle()
@@ -130,11 +130,12 @@ class Car():
         self.apply_turn()
         
         if self.movement[self.MOVE_FORWARD] > 0:
-            self.delta_pixels += self.acc_pixels*min(1, self.movement[self.MOVE_FORWARD])
+            self.delta_pixels += self.acc_pixels*min(1, self.movement[self.MOVE_FORWARD]/2)
 
         # Breaking
-        if self.movement[self.MOVE_BREAK] > 0:
-            self.delta_pixels = max(0, self.delta_pixels-1.5*self.acc_pixels)*min(1, self.movement[self.MOVE_BREAK])
+        else:
+            brk = 1.5*self.acc_pixels*min(1, -self.movement[self.MOVE_FORWARD]/2)
+            self.delta_pixels = max(0, self.delta_pixels-brk)
 
         # Apply acceleration
         self.x += self.direction[0]*self.delta_pixels

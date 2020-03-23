@@ -1,7 +1,7 @@
 {  
     "seed" : 2550690257394217,
     "EPS" : 0.0001,
-    "graphics" : true,
+    "graphics" : false,
     "width" : 1200,
     "height": 600,
     "fps" : 120,

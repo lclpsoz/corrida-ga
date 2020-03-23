@@ -135,7 +135,7 @@ class View():
                 self.draw_text(pos[0], pos[1], "=======", font, (0,0,0))
                 pos[1] += font_size
                 self.draw_text(pos[0], pos[1], "  %+05.1f" % (speed*indv[j][0]), font, get_color(speed*indv[j][0]))
-                total += speed*indv[j][0]
+                total += (speed*indv[j][0])/self.config['car']['number_of_visions']
                 pos[1] += font_size
                 self.draw_text(pos[0], pos[1], "_______", font, (0,0,0))
                 pos[1] += font_size
