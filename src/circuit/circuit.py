@@ -4,6 +4,7 @@ import time
 import ctypes
 from copy import deepcopy
 from shapely.geometry.polygon import Polygon
+from shapely.geometry import Point
 from shapely.geometry import LineString
 
 import collisions_wrapper
@@ -56,12 +57,97 @@ class Circuit(object):
         else:
             points = shape
         c = Circuit.COLLISION_NONE
-        for x, y in points:
-            sector_id = self.cur_sector([x,y])
-            if sector_id == -1:
-                c = Circuit.COLLISION_WALL
-
+        wall = self.get_walls_list()
+        j = 1
+        while j < len(points):
+            s1 = points[j - 1]
+            s2 = points[j]
+            i = 0
+            while i < len(wall):
+                w1 = [wall[i], wall[i + 1]]
+                w2 = [wall[i + 2], wall[i + 3]]
+                inter, _ = self.seg_inter(s1, s2, w1, w2)
+                if inter:
+                    c = Circuit.COLLISION_WALL
+                    break
+                i += 4
+            j += 1
         return c
+
+
+    def cross(self, a, b):
+        return a[0]*b[1] - a[1]*b[0]
+
+    def orient(self, a, b, p):
+        a[0] -= p[0]
+        a[1] -= p[1]
+        b[0] -= p[0]
+        b[1] -= p[1]
+        ret = self.cross(a, b)
+        a[0] += p[0]
+        a[1] += p[1]
+        b[0] += p[0]
+        b[1] += p[1]
+
+        return ret
+
+    def dot(self, a, b):
+        return a[0]*b[0] + a[1]*b[1]
+
+    def inDisk(self, a, b, p):
+        a[0] -= p[0]
+        a[1] -= p[1]
+        b[0] -= p[0]
+        b[1] -= p[1]
+        ret = self.dot(a, b) <= 0
+        a[0] += p[0]
+        a[1] += p[1]
+        b[0] += p[0]
+        b[1] += p[1]
+
+        return ret
+
+    def onSegment(self, a, b, p):
+        return self.orient(a, b, p) == 0 and self.inDisk(a, b, p)
+
+    def seg_inter(self, a, b, c, d):
+        oa = self.orient(c, d, a)
+        ob = self.orient(c, d, b)
+        oc = self.orient(a, b, c)
+        od = self.orient(a, b, d)
+
+        if oa*ob < 0 and oc*od < 0:
+            out = [0,0]
+            out[0] = (a[0]*ob - b[0]*oa) / (ob-oa)
+            out[1] = (a[1]*ob - b[1]*oa) / (ob-oa)
+            return [True, out]
+
+        if self.onSegment(c, d, a):
+            return [True, a]
+
+        if self.onSegment(c, d, b):
+            return [True, b]
+
+        if self.onSegment(a, b, c):
+            return [True, c]
+
+        if self.onSegment(a, b, d):
+            return [True, d]
+
+        return [False, [0,0]]
+
+    def distance(self, segment):
+        wall = self.get_walls_list()
+        min_d = 1e9
+        i = 0
+        while i < len(wall):
+            w1 = [wall[i], wall[i + 1]]
+            w2 = [wall[i + 2], wall[i + 3]]
+            inter, pt = self.seg_inter(segment[0], segment[1], w1, w2)
+            if inter:
+                min_d = min(min_d, Point(pt).distance(Point(segment[0][0], segment[0][1])))
+            i += 4
+        return min_d
 
     def get_walls_list(self):
         """Returns list of floats, each 4 positions representing a segment
@@ -117,7 +203,7 @@ class Circuit(object):
     def collision_car(self, car):
         """Returns the type of collision of the car and the circuit. Can be
         NONE or WALL."""
-        return self.collision(Polygon(car.get_points()))
+        return self.collision(car.get_points())
 
     def batch_collision_car(self, list_cars):
         """Returns a list of types of collisions, each position corresponding
@@ -198,7 +284,7 @@ class Circuit(object):
             collisions_wrapper.freeme(batch_ret)
             return ret
         else:
-            return [self.collision(shape) for shape in segs_input]
+            return [self.distance(shape) for shape in segs_input]
 
     def batch_collision_dist_segs(self, segs_1, segs_2):
         """Receives two lists of segments. Returns the distance between
