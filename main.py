@@ -45,6 +45,7 @@ print("Available circuits:", available_circuits)
 
 options = {
     '-track' : ['track', str],
+    '-fps' : ['fps', int],
     '-pop_sz' : ['ai', 'population_size', int],
     '-mut_type' : ['ai', 'mutation_type', str],
     '-mut_chance' : ['ai', 'mutation_chance', float],
@@ -55,7 +56,9 @@ options = {
     '-player' : ['PLAYER'],
     '-reuse' : ['LOAD'],
     '-tv' : ['SET', 'graphics', True],
-    '-notv' : ['SET', 'graphics', False]
+    '-notv' : ['SET', 'graphics', False],
+    '-save' : ['SET', 'ai', 'save', True],
+    '-nosave' : ['SET', 'ai', 'save', False]
 }
 
 game_now = "GA"

@@ -2,6 +2,7 @@ import random
 import time
 import os
 import json
+import subprocess
 import numpy as np
 from copy import deepcopy
 from datetime import datetime
@@ -15,6 +16,10 @@ class AIGA(AI):
             print("Population size must be even!")
             exit(0)
         self.config = config
+        if 'save' in config['ai']:
+            self.must_save = config['ai']['save']
+        else:
+            self.must_save = False
         self.EPS = config['EPS']
         self.gene_size = self.config['car']['number_of_visions'] + 1
         self.gene_amnt = 4 # Types of movement
@@ -44,8 +49,20 @@ class AIGA(AI):
             self.pop_size_crossover -= 1
         self.pop_size_new = self.population_size - self.pop_size_crossover - self.pop_size_elitism
 
-        self.identifier = "ga_" + self.config["track"] + datetime.now().strftime("__%Y-%d-%m_%H-%M-%S")
-        self.save()
+        try:
+            label_last_commit = \
+                subprocess.check_output(["git", "describe", "--always"]).strip()
+            if isinstance(label_last_commit, bytes):
+                label_last_commit = label_last_commit.decode('utf-8')
+        except:
+            label_last_commit = "_git-not_found"
+        self.identifier = \
+            "ga_" + \
+            self.config["track"] + \
+            datetime.now().strftime("__%Y-%d-%m_%H-%M-%S") + \
+            "__git-" + label_last_commit
+        if self.must_save:
+            self.save()
 
     def random_population(self, n):
         """Generate n random individuals."""
@@ -202,15 +219,13 @@ class AIGA(AI):
     def set_ai_info(self, ai_info):
         """Sets attributes of class based on ai_info."""
         self.generation = ai_info['generation']
+        self.features = [None for i in range(self.population_size)]
+        self.fitness = None
         if len(ai_info['population']) >= self.population_size:
-            self.population = [ai_info['population'][-i - 1] for i in range(self.population_size)]
-            self.features = [None for i in range(self.population_size)]
-            self.fitness = None
+            self.population = ai_info['population'][-self.population_size:]
         else:
             sz_new = self.population_size - len(ai_info['population'])
             self.population = ai_info['population'] + self.random_population(sz_new)
-            self.features = [None for i in range(self.population_size)]
-            self.fitness = None
 
     def next_generation(self):
         """If the number of generation was achieved, returns False, else,
@@ -259,7 +274,8 @@ class AIGA(AI):
         self.features = [x for _,x,_ in sorted_by_fitness]
         self.population = [x for _,_,x in sorted_by_fitness]
 
-        self.save()
+        if self.must_save:
+            self.save()
 
         if self.verbose > 1:
             for i in range(self.population_size):
