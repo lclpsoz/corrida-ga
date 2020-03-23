@@ -171,7 +171,8 @@ class View():
             if hasattr(self, 'population'):
                 self.draw_ai_activation([0, 60])
             pygame.display.update(pygame.Rect((0, 0), (self.width//3 - 1, self.height)))
-        pygame.display.update(pygame.Rect((self.width//3, 0), (2*self.width//3, self.height)))
+        if self.config["graphics"]:
+            pygame.display.update(pygame.Rect((self.width//3, 0), (2*self.width//3, self.height)))
         self.num_frame += 1
         self.num_frame_now += 1
         # if self.num_frame%60 == 0:

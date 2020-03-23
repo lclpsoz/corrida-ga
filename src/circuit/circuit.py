@@ -28,7 +28,8 @@ class Circuit(object):
 
         self.x_shift = self.config['width']//3
         surface_dim = (2*config['width']//3, config['height'])
-        self.surface = pygame.Surface(surface_dim)
+        if self.config["graphics"]:
+            self.surface = pygame.Surface(surface_dim)
         
         self.track_points = [config[circuit_name]['outter'], config[circuit_name]['inner']]
         a, b = self.track_points

@@ -70,4 +70,5 @@ class Controller(metaclass=ABCMeta):
             'x' : self.track.start[0],
             'y' : self.track.start[1],
             'start_angle' : self.track.start_angle,
+            'graphics' : self.config['graphics']
         })

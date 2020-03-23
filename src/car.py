@@ -96,7 +96,8 @@ class Car():
         self.update_car_angle_exact(-90)
 
         # Start PyGame surface for the car
-        self.surface = pygame.Surface((round(self.surface_side), round(self.surface_side)), pygame.SRCALPHA)
+        if self.config["graphics"]:
+            self.surface = pygame.Surface((round(self.surface_side), round(self.surface_side)), pygame.SRCALPHA)
         self.ori_car_structure = []
         self.ori_car_front = []
         self.ori_car_seg_vision = []
@@ -128,12 +129,12 @@ class Car():
         # Apply movement to the car based on list movement
         self.apply_turn()
         
-        if self.movement[self.MOVE_FORWARD]:
-            self.delta_pixels += self.acc_pixels
+        if self.movement[self.MOVE_FORWARD] > 0:
+            self.delta_pixels += self.acc_pixels*min(1, self.movement[self.MOVE_FORWARD])
 
         # Breaking
-        if self.movement[self.MOVE_BREAK]:
-            self.delta_pixels = max(0, self.delta_pixels-1.5*self.acc_pixels)
+        if self.movement[self.MOVE_BREAK] > 0:
+            self.delta_pixels = max(0, self.delta_pixels-1.5*self.acc_pixels)*min(1, self.movement[self.MOVE_BREAK])
 
         # Apply acceleration
         self.x += self.direction[0]*self.delta_pixels

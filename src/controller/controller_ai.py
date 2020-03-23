@@ -72,7 +72,8 @@ class ControllerAI(Controller):
         self.view.num_frame = 0
         self.view.num_frame_now = 0
 
-        circuit_surface = self.track.draw()
+        if self.config["graphics"]:
+            circuit_surface = self.track.draw()
 
         num_of_cars = self.config['ai']['population_size']        
         cars = []
@@ -116,7 +117,8 @@ class ControllerAI(Controller):
 
         running = True
         while running:
-            self.view.blit(circuit_surface, [x_track_offset, 0])
+            if self.config["graphics"]:
+                self.view.blit(circuit_surface, [x_track_offset, 0])
             
             # Batch check collision for all cars:
             batch_col = self.track.batch_collision_car([car['car'] for car in cars])
@@ -147,8 +149,10 @@ class ControllerAI(Controller):
                 if not car['active']:
                     continue
                 # Draw Car
-                car_surface = car['car'].draw()
-                self.view.blit(car_surface, car['car'].get_pos_surface())
+                if self.config["graphics"]:
+                    car_surface = car['car'].draw()
+                    if self.config["graphics"]:
+                        self.view.blit(car_surface, car['car'].get_pos_surface())
                 # Update car sector
                 self.track.update_car_sector(car['id'], car['car'])
                 # Update delta_pixels history:
