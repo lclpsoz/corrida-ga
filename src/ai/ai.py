@@ -16,8 +16,9 @@ class AI(metaclass=ABCMeta):
 
     def set_evaluation(self, car_id : int, features : dict):
         """Set features of a car with car_id based on received features."""
-        self.features[car_id] = features
-        self.evaluated+=1
+        if self.features[car_id] == None:
+            self.features[car_id] = features
+            self.evaluated+=1
 
     def population_evaluated(self):
         """Returns if the whole population was evaluated."""
