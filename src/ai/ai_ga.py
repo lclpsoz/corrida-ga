@@ -70,7 +70,7 @@ class AIGA(AI):
         for i in range(self.population_size):
             feat = self.features[i]
             self.fitness.append(100*feat['perc_of_sectors'] +
-                (self.max_frames - feat['amount_frames'])/self.fps)
+                (self.max_frames - feat['amount_frames'])/(2*self.max_frames))
 
     def mutation(self, indv):
         """Apply mutation to indv in place."""

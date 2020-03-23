@@ -110,7 +110,7 @@ class ControllerAI(Controller):
             car['name'] = "ai_%d" % car['id']
 
         # To check if all cars are doing something, a list of deques with the
-        # last 3 delta_pixels of each car.
+        # last x delta_pixels of each car.
         history_length = 3
         delta_pixels_hist = [deque([1 for x in range(history_length)]).copy() for x in range(num_of_cars)]
 
@@ -169,7 +169,7 @@ class ControllerAI(Controller):
                                 ai.max_frames):
                     self.deactivate_car(car, ai)
 
-                if car['active'] and sum(delta_pixels_hist[car['id']]) == 0:
+                if self.view.num_frame_now > 15 and car['active'] and sum(delta_pixels_hist[car['id']]) < 0.5:
                     self.deactivate_car(car, ai)
                     
 
