@@ -46,6 +46,7 @@ print("Available circuits:", available_circuits)
 options = {
     '-track' : ['track', str],
     '-fps' : ['fps', int],
+    '-fps_info' : ['fps_info', int],
     '-pop_sz' : ['ai', 'population_size', int],
     '-mut_type' : ['ai', 'mutation_type', str],
     '-mut_chance' : ['ai', 'mutation_chance', float],

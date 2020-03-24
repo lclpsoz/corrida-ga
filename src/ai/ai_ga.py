@@ -22,7 +22,8 @@ class AIGA(AI):
             self.must_save = False
         self.EPS = config['EPS']
         self.gene_size = self.config['car']['number_of_visions'] + 1
-        self.gene_amnt = 4 # Types of movement
+        # One for acc/break and the other for turns
+        self.gene_amnt = 2
         if ai_info:
             self.set_ai_info(ai_info)
         else:
@@ -226,6 +227,10 @@ class AIGA(AI):
         else:
             sz_new = self.population_size - len(ai_info['population'])
             self.population = ai_info['population'] + self.random_population(sz_new)
+        if len(self.population[0]) == 4:
+            for i in range(len(self.population)):
+                self.population[i][1] = self.population[i][2]
+                self.population[i] = self.population[i][:2]
 
     def next_generation(self):
         """If the number of generation was achieved, returns False, else,

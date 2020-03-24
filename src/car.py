@@ -10,10 +10,8 @@ from copy import deepcopy
 from circuit.circuit import Circuit
 
 class Car():
-    MOVE_FORWARD = 0
-    MOVE_BREAK = 1
-    MOVE_LEFT = 2
-    MOVE_RIGHT = 3
+    MOVE_ACC = 0
+    MOVE_TURN = 1
     def __init__(self, config, show_vision = False):
         """Receives information about the car. start_angle is relative to East and is
         anti-clockwise."""
@@ -67,7 +65,7 @@ class Car():
         # -start_angle because start_angle is anti-clockwise.
         self.direction = self.rotate_point_degree((0, 0), self.direction, -config['start_angle'])
 
-        self.movement = [False, False, False, False] # Forward, Backward, Left, Right
+        self.movement = [0, 0] # ACC and TURN
 
     def reset(self):
         """Resets car to default configurations."""
@@ -116,12 +114,14 @@ class Car():
         # Apply turn to the car based on list movement
         turn_angle_intensity = max(2.25, (16 - self.delta_pixels)/3)
         turn_angle = 0
-        if self.movement[self.MOVE_LEFT] > 0:
+        intensity = min(1, self.movement[self.MOVE_TURN]/self.mov_norm)
+        # When the movement is positive, it must turn left, right otherwise
+        if self.movement[self.MOVE_TURN] > 0:
             if(self.delta_pixels > self.EPS):
-                turn_angle += -turn_angle_intensity*min(1, self.movement[self.MOVE_LEFT]/self.mov_norm)
+                turn_angle += -turn_angle_intensity*intensity
         else:
             if(self.delta_pixels > self.EPS):
-                turn_angle += turn_angle_intensity*min(1, -self.movement[self.MOVE_LEFT]/self.mov_norm)
+                turn_angle += turn_angle_intensity*-intensity
 
         self.direction = self.rotate_point_degree((0, 0), self.direction, turn_angle)
         self.update_car_angle()
@@ -130,12 +130,15 @@ class Car():
         # Apply movement to the car based on list movement
         self.apply_turn()
         
-        if self.movement[self.MOVE_FORWARD] > 0:
-            self.delta_pixels += self.acc_pixels*min(1, self.movement[self.MOVE_FORWARD]/self.mov_norm)
+        intensity = min(1, self.movement[self.MOVE_ACC]/self.mov_norm)
+        # If movement in MOVE_ACC is positive, it will accelerate. The
+        # car will break otherwise.
+        if self.movement[self.MOVE_ACC] > 0:
+            self.delta_pixels += self.acc_pixels*intensity
 
         # Breaking
         else:
-            brk = 1.5*self.acc_pixels*min(1, -self.movement[self.MOVE_FORWARD]/self.mov_norm)
+            brk = 1.5*self.acc_pixels*-intensity
             self.delta_pixels = max(0, self.delta_pixels-brk)
 
         # Apply acceleration
@@ -144,11 +147,7 @@ class Car():
 
         # Apply friction
         speed = self.get_speed()
-        if not self.movement[self.MOVE_FORWARD] and speed > 0 and speed < 5:
-            self.delta_pixels = max(0, self.delta_pixels -\
-                0.2*self.friction_multiplier*self.friction_movement)
-        else:
-            self.delta_pixels *= 1 - self.friction_multiplier * self.friction_movement
+        self.delta_pixels *= 1 - self.friction_multiplier * self.friction_movement
 
 
     def handle_keys(self):

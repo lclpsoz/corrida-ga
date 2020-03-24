@@ -100,7 +100,7 @@ class View():
         for i in range(len(self.population)):
             self.draw_text(pos[0], pos[1], "%s%s" % (" "*13, "car_" + str(i+1)), font)
             pos[1] += font_size
-            self.draw_text(pos[0], pos[1], "  ACC  | BREAK | LEFT  | RIGHT |",
+            self.draw_text(pos[0], pos[1], "    ACC   |   TURN   |",
                             font, (0, 0, 0))
             pos[1] += font_size
             indv = self.population[i]
@@ -109,17 +109,17 @@ class View():
             for j in range(len(indv)):
                 total = 0
                 ori_pos_1 = pos[1]
-                pygame.draw.line(surface, (0, 0, 0), [82+pos[0], pos[1]],
-                                                        [82+pos[0], pos[1]+500])
+                pygame.draw.line(surface, (0, 0, 0), [116+pos[0], pos[1]],
+                                                        [116+pos[0], pos[1]+500])
                 for k in range(len(indv[j])-1):
                     total += vision[k]*indv[j][k+1]
                     if vision[k]:
                         color = (255, 0, 0)
                     else:
                         color = (0, 254, 0)
-                    self.draw_text(pos[0], pos[1], str("%.1f" % vision[k]), font, color)
-                    self.draw_text(pos[0]+font_size-1, pos[1], "*", font, (0,0,0))
-                    self.draw_text(pos[0]+(font_size-1)*2-1, pos[1],
+                    self.draw_text(pos[0], pos[1], str("%.3f" % vision[k]), font, color)
+                    self.draw_text(pos[0]+3*font_size-1, pos[1], "*", font, (0,0,0))
+                    self.draw_text(pos[0]+(2*font_size-1)*2-1, pos[1],
                                         "%+1.1f" % indv[j][k+1],
                                         font, get_color(indv[j][k+1]))
                     pos[1] += font_size
@@ -142,12 +142,23 @@ class View():
                 self.draw_text(pos[0], pos[1], "S=%+05.1f" % (total), font, get_color(total))
                 pos[1] += font_size
 
-                if total > self.EPS:
-                    self.draw_text(pos[0], pos[1], " ACTIV ", font, (0,254,0))
+                if j == 0:
+                    text_positive = "  ACC  "
+                    text_negative = " BREAK "
+                    color_pos = (0,254,0)
+                    color_neg = (255,0,0)
                 else:
-                    self.draw_text(pos[0], pos[1], "DEACTIV", font, (255,0,0))
+                    text_positive = " LEFT  "
+                    text_negative = " RIGHT "
+                    color_pos = (0,120,255)
+                    color_neg = (120,0,255)
+
+                if total > self.EPS:
+                    self.draw_text(pos[0], pos[1], text_positive, font, color_pos)
+                else:
+                    self.draw_text(pos[0], pos[1], text_negative, font, color_neg)
                 pos[1] = ori_pos_1
-                pos[0] += int(font_size * 5)-2
+                pos[0] += int(font_size * 7)-2
             pos[1] += font_size
         self.blit(surface, [0, 0])
 
