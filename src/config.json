@@ -8,7 +8,7 @@
     "fps_info" : 10,
     "acum_fps_window" : 120,
     "verbose" : 1,
-    "track" : "left_turn",
+    "track" : "ellipse",
     "car" :
     {
         "number_of_visions" : 17,
