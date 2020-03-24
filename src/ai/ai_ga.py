@@ -128,7 +128,7 @@ class AIGA(AI):
         as it is spread to all it neighbours."""
         for i in range(self.gene_amnt):
             indv[i][0] += random.uniform(-self.mutation_factor, self.mutation_factor)
-            indv[i][0] = clamp(indv[i][0], -1, 1)
+            indv[i][0] = self.clamp(indv[i][0], -1, 1)
 
             left = 1
             if random.random() < self.mutation_chance:
@@ -136,19 +136,19 @@ class AIGA(AI):
                 mut = random.uniform(-self.mutation_factor, self.mutation_factor)
                 for j in range (left, self.gene_size):
                     indv[i][j] += mut/div
-                    indv[i][j] = clamp(indv[i][j], -1, 1)
+                    indv[i][j] = self.clamp(indv[i][j], -1, 1)
                     div *= 2
 
             center = self.config['car']['number_of_visions']//2 + 1
             if random.random() < self.mutation_chance:
                 div = 1
                 mut = random.uniform(-self.mutation_factor, self.mutation_factor)
-                for j in range (self.gene_size + 1):
+                for j in range (center):
                     indv[i][center+j] += mut/div
-                    indv[i][center+j] = clamp(indv[i][center+j], -1, 1)
+                    indv[i][center+j] = self.clamp(indv[i][center+j], -1, 1)
                     if j:
                         indv[i][center-j] += mut/div
-                        indv[i][center-j] = clamp(indv[i][center-j], -1, 1)
+                        indv[i][center-j] = self.clamp(indv[i][center-j], -1, 1)
                     div *= 2
 
             right = self.config['car']['number_of_visions']
@@ -157,7 +157,7 @@ class AIGA(AI):
                 mut = random.uniform(-self.mutation_factor, self.mutation_factor)
                 for j in range (right, left, -1):
                     indv[i][j] += mut/div
-                    indv[i][j] = clamp(indv[i][j], -1, 1)
+                    indv[i][j] = self.clamp(indv[i][j], -1, 1)
                     div *= 2
 
     def crossover(self, parent_1, parent_2):
