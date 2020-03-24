@@ -76,26 +76,9 @@ int seg_inter(float a[2], float b[2], float c[2], float d[2], float out[2]) {
     od = orient(a, b, d);
 
     if(oa*ob < 0 && oc*od < 0) {
-        // out = (a*ob - b*oa) / (ob-oa);
         out[0] = (a[0]*ob - b[0]*oa) / (ob-oa);
         out[1] = (a[1]*ob - b[1]*oa) / (ob-oa);
-        return 1;
-    }
-
-    if(onSegment(c, d, a)) {
-        out = a;
-        return 1;
-    }
-    if(onSegment(c, d, b)) {
-        out = b;
-        return 1;
-    }
-    if(onSegment(a, b, c)) {
-        out = c;
-        return 1;
-    }
-    if(onSegment(a, b, d)) {
-        out = d;
+        // printf("!");
         return 1;
     }
 
@@ -106,10 +89,6 @@ float dist_sq(float a[2], float b[2]) {
     float dx = a[0]-b[0];
     float dy = a[1]-b[1];
     return dx*dx + dy*dy;
-}
-
-float dist(float a[2], float b[2]) {
-    return sqrt(dist_sq(a, b));
 }
 
 // Receive a pointer to segments in a array where every 4 positions
