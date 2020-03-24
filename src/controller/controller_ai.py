@@ -8,10 +8,9 @@ from pprint import pprint
 
 from car import Car
 from view import View
+from ai_ga import AIGA
 from controller.controller import Controller
 from circuit.circuit import Circuit
-from ai.ai_manual import AIManual
-from ai.ai_ga import AIGA
 
 class ControllerAI(Controller):
     def __init__(self, config, ai_info = None):
@@ -107,10 +106,8 @@ class ControllerAI(Controller):
             if len(cars) == 1:
                 cars[-1]['car'].show_vision = True
 
-        if self.config['ai']['type'] == 'ga':
-            ai = AIGA(self.config, self.ai_info)
-        else:
-            ai = AIManual(self.config)
+        ai = AIGA(self.config, self.ai_info)
+
         for car in cars:
             car['name'] = "ai_%d" % car['id']
 

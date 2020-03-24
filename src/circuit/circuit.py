@@ -4,9 +4,6 @@ import time
 import ctypes
 import numpy as np
 from copy import deepcopy
-from shapely.geometry.polygon import Polygon
-from shapely.geometry import Point
-from shapely.geometry import LineString
 
 import collisions_wrapper
 
@@ -37,6 +34,7 @@ class Circuit(object):
         a, b = self.track_points
         self.sectors = deepcopy([[a[i], b[i]] for i in range(len(a))])
         self.num_of_sectors = len(self.sectors)
+       
         self.start = [
             (self.sectors[0][0][0] +
                 self.sectors[0][1][0]) // 2 +
@@ -44,140 +42,43 @@ class Circuit(object):
             (self.sectors[0][0][1] +
                 self.sectors[0][1][1]) // 2
             ]
-        for sector_line in self.sectors:
-            sector_line[0][0] += self.x_shift
-            sector_line[1][0] += self.x_shift
+    
+    def draw(self):
+        """Returns the pygame.Surface with the track drawed"""
+        self.surface.set_colorkey((0, 255, 0))
+        self.surface.fill((0,255,0))
 
-        self.point_max_sector = []
+        for container in range(0, 2):
+            if len(self.track_points[container]) > 0:
+                last = self.track_points[container][len(self.track_points[container]) - 1]
+                for x, y in self.track_points[container]:
+                    pygame.draw.line(self.surface, self.color_wall, [x, y], last, self.wall)
+                    last = [x, y]
+      
+        return self.surface
+ 
+    def add_car(self, player, frame_now):
+        """Adds a car in the circuit."""
+        id = len(self.car_sectors)
+        self.car_sectors.append([0 for i in range(self.num_of_sectors)])
+        self.car_sectors[id][0] = 1
+        self.car_current_sector.append(0)
+        self.car_start_time.append(time.time())
+        self.car_start_frame.append(frame_now)
+        return id
 
-    def collision(self, shape):
-        """Returns the type of collision of the shapely shape and the circuit.
-        Can be NONE or WALL. Also accept list of points"""
-        if isinstance(shape, (Polygon, LineString)):
-            points = self.get_points_shape(shape)
-        else:
-            points = shape
-        c = Circuit.COLLISION_NONE
-        wall = self.get_walls_list()
-        j = 1
-        while j < len(points):
-            s1 = points[j - 1]
-            s2 = points[j]
-            i = 0
-            while i < len(wall):
-                w1 = [wall[i], wall[i + 1]]
-                w2 = [wall[i + 2], wall[i + 3]]
-                inter, _ = self.seg_inter(s1, s2, w1, w2)
-                if inter:
-                    c = Circuit.COLLISION_WALL
-                    break
-                i += 4
-            j += 1
-        return c
+    def reset(self, car_id, frame_now):
+        """Reset car with car_id."""
+        self.car_sectors[car_id] = [0 for i in range(self.num_of_sectors)]
+        self.car_sectors[car_id][0] = 1
+        self.car_current_sector[car_id] = 0
+        self.car_start_time[car_id] = time.time()
+        self.car_start_frame[car_id] = frame_now
 
-
-    def cross(self, a, b):
-        return a[0]*b[1] - a[1]*b[0]
-
-    def orient(self, a, b, p):
-        a[0] -= p[0]
-        a[1] -= p[1]
-        b[0] -= p[0]
-        b[1] -= p[1]
-        ret = self.cross(a, b)
-        a[0] += p[0]
-        a[1] += p[1]
-        b[0] += p[0]
-        b[1] += p[1]
-
-        return ret
-
-    def dot(self, a, b):
-        return a[0]*b[0] + a[1]*b[1]
-
-    def inDisk(self, a, b, p):
-        a[0] -= p[0]
-        a[1] -= p[1]
-        b[0] -= p[0]
-        b[1] -= p[1]
-        ret = self.dot(a, b) <= 0
-        a[0] += p[0]
-        a[1] += p[1]
-        b[0] += p[0]
-        b[1] += p[1]
-
-        return ret
-
-    def onSegment(self, a, b, p):
-        return self.orient(a, b, p) == 0 and self.inDisk(a, b, p)
-
-    def seg_inter(self, a, b, c, d):
-        oa = self.orient(c, d, a)
-        ob = self.orient(c, d, b)
-        oc = self.orient(a, b, c)
-        od = self.orient(a, b, d)
-
-        if oa*ob < 0 and oc*od < 0:
-            out = [0,0]
-            out[0] = (a[0]*ob - b[0]*oa) / (ob-oa)
-            out[1] = (a[1]*ob - b[1]*oa) / (ob-oa)
-            return [True, out]
-
-        if self.onSegment(c, d, a):
-            return [True, a]
-
-        if self.onSegment(c, d, b):
-            return [True, b]
-
-        if self.onSegment(a, b, c):
-            return [True, c]
-
-        if self.onSegment(a, b, d):
-            return [True, d]
-
-        return [False, [0,0]]
-
-    def distance(self, segment):
-        wall = self.get_walls_list()
-        min_d = 1e9
-        i = 0
-        while i < len(wall):
-            w1 = [wall[i], wall[i + 1]]
-            w2 = [wall[i + 2], wall[i + 3]]
-            inter, pt = self.seg_inter(segment[0], segment[1], w1, w2)
-            if inter:
-                min_d = min(min_d, Point(pt).distance(Point(segment[0][0], segment[0][1])))
-            i += 4
-        return min_d
-
-    def vector_magnitude_sum(self, vector, scalar):
-        """Sum scalar value to vector magnitude."""
-        vector = np.asarray(vector)
-        x, y = vector
-        vector_magnitude = math.sqrt(x**2 + y**2)
-        if vector_magnitude > 0:
-            vector_unit = vector/vector_magnitude
-        else:
-            vector_unit = [1, 0]
-        return vector + (vector_unit*scalar)
-
-    def extend_seg(self, seg, units):
-        """Extend segment receive in the format [x1, y1, x2, y2] by
-        units in both directions. Operation done in place."""
-        aux = seg.copy()[2:]
-        aux[0] -= seg[0]
-        aux[1] -= seg[1]
-        aux = self.vector_magnitude_sum([aux[0], aux[1]], units)
-        seg[2] = aux[0] + seg[0]
-        seg[3] = aux[1] + seg[1]
-
-        aux = seg.copy()[:2]
-        aux[0] -= seg[2]
-        aux[1] -= seg[3]
-        aux = self.vector_magnitude_sum([aux[0], aux[1]], units)
-        seg[0] = aux[0] + seg[2]
-        seg[1] = aux[1] + seg[3]
-
+    def finished(self, car_id):
+        """True if the car finished the circuit, False otherwise."""
+        return sum(self.car_sectors[car_id]) == self.num_of_sectors
+    
     def get_walls_list(self):
         """Returns list of floats, each 4 positions representing a segment
         of the walls (inner and outter)."""
@@ -196,44 +97,41 @@ class Circuit(object):
                         last = [x, y]
         return self.walls
 
-    def draw(self):
-        """Returns the pygame.Surface with the track drawed"""
-        self.surface.set_colorkey((0, 255, 0))
-        self.surface.fill((0,255,0))
+    def collision(self, shape):
+        """Returns the type of collision of the shape and the circuit.
+        Can be NONE or WALL. Also accept list of points"""
 
-        for container in range(0, 2):
-            if len(self.track_points[container]) > 0:
-                last = self.track_points[container][len(self.track_points[container]) - 1]
-                for x, y in self.track_points[container]:
-                    pygame.draw.line(self.surface, self.color_wall, [x, y], last, self.wall)
-                    last = [x, y]
-      
-        return self.surface
+        points = shape
+        c = Circuit.COLLISION_NONE
+        wall = self.get_walls_list()
+        j = 1
+        while j < len(points):
+            s1 = points[j - 1]
+            s2 = points[j]
+            i = 0
+            while i < len(wall):
+                w1 = [wall[i], wall[i + 1]]
+                w2 = [wall[i + 2], wall[i + 3]]
+                inter, _ = self.seg_inter(s1, s2, w1, w2)
+                if inter:
+                    c = Circuit.COLLISION_WALL
+                    break
+                i += 4
+            j += 1
+        return c
 
-    def add_car(self, player, frame_now):
-        """Adds a car in the circuit."""
-        id = len(self.car_sectors)
-        self.car_sectors.append([0 for i in range(self.num_of_sectors)])
-        self.car_sectors[id][0] = 1
-        self.car_current_sector.append(0)
-        self.car_start_time.append(time.time())
-        self.car_start_frame.append(frame_now)
-        self.point_max_sector.append(self.num_of_sectors - 1)
-
-        return id
-
-    def reset(self, car_id, frame_now):
-        """Reset car with car_id."""
-        self.car_sectors[car_id] = [0 for i in range(self.num_of_sectors)]
-        self.car_sectors[car_id][0] = 1
-        self.car_current_sector[car_id] = 0
-        self.car_start_time[car_id] = time.time()
-        self.car_start_frame[car_id] = frame_now
-        self.point_max_sector[car_id] = self.num_of_sectors - 1
-
-    def finished(self, car_id):
-        """True if the car finished the circuit, False otherwise."""
-        return sum(self.car_sectors[car_id]) == self.num_of_sectors
+    def distance(self, segment):
+        wall = self.get_walls_list()
+        min_d = 1e9
+        i = 0
+        while i < len(wall):
+            w1 = [wall[i], wall[i + 1]]
+            w2 = [wall[i + 2], wall[i + 3]]
+            inter, pt = self.seg_inter(segment[0], segment[1], w1, w2)
+            if inter:
+                min_d = min(min_d, math.hypot(pt[0] - segment[0], pt[1] - segment[1]))
+            i += 4
+        return min_d
 
     def collision_car(self, car):
         """Returns the type of collision of the car and the circuit. Can be
@@ -268,29 +166,6 @@ class Circuit(object):
         else:
             return [self.collision_car(car) for car in list_cars]
 
-    def batch_collision(self, segs_input : list):
-        """Returns a list of types of collisions, each position corresponding
-        to the collision with the walls for each segment.
-        segs is expected to be a list of elements in the format: [[x1, y1], [x2, y2]]"""
-        if collisions_wrapper.collisions:
-            ret = []
-            segs_list = []
-            for seg in segs_input:
-                segs_list.extend([seg[0][0], seg[0][1], seg[1][0], seg[1][1]])
-            batch_ret = self.batch_collision_segs(segs_list, self.get_walls_list())
-            for i in range(len(segs_input)):
-                if batch_ret[i]:
-                    ret.append(Circuit.COLLISION_WALL)
-                else:
-                    ret.append(Circuit.COLLISION_NONE)
-
-            assert(len(ret) == len(segs_input))
-            # Free memory
-            collisions_wrapper.freeme(batch_ret)
-            return ret
-        else:
-            return [self.collision(shape) for shape in segs_input]
-
     def batch_collision_segs(self, segs_1, segs_2):
         """Receives two lists of segments and compute which of the first
         collide with any of the second."""
@@ -319,7 +194,7 @@ class Circuit(object):
             collisions_wrapper.freeme(batch_ret)
             return ret
         else:
-            return [self.distance(shape) for shape in segs_input]
+            return [self.distance(seg) for seg in segs_input]
 
     def batch_collision_dist_segs(self, segs_1, segs_2):
         """Receives two lists of segments. Returns the distance between
@@ -354,14 +229,6 @@ class Circuit(object):
 
         self.car_current_sector[car_id] = now
 
-    def get_points_shape(self, shape):
-        """Receives any shapely shape and returns it points in a array"""
-        if isinstance(shape, Polygon):
-            shape = shape.exterior
-        xy = shape.coords.xy
-        points = [(xy[0][i], xy[1][i]) for i in range(len(xy[0]))]
-        return points
-
     def get_current_car_time(self, car_id):
         """Returns current time by car with car_id."""
         return time.time() - self.car_start_time[car_id]
@@ -373,3 +240,78 @@ class Circuit(object):
     def get_car_perc_sectors(self, car_id):
         """Returns percentage of sectors already traversed by car with car_id."""
         return sum(self.car_sectors[car_id])/self.num_of_sectors
+
+    def vector_magnitude_sum(self, vector, scalar):
+        """Sum scalar value to vector magnitude."""
+        vector = np.asarray(vector)
+        x, y = vector
+        vector_magnitude = math.sqrt(x**2 + y**2)
+        if vector_magnitude > 0:
+            vector_unit = vector/vector_magnitude
+        else:
+            vector_unit = [1, 0]
+        return vector + (vector_unit*scalar)
+
+    def extend_seg(self, seg, units):
+        """Extend segment receive in the format [x1, y1, x2, y2] by
+        units in both directions. Operation done in place."""
+        aux = seg.copy()[2:]
+        aux[0] -= seg[0]
+        aux[1] -= seg[1]
+        aux = self.vector_magnitude_sum([aux[0], aux[1]], units)
+        seg[2] = aux[0] + seg[0]
+        seg[3] = aux[1] + seg[1]
+
+        aux = seg.copy()[:2]
+        aux[0] -= seg[2]
+        aux[1] -= seg[3]
+        aux = self.vector_magnitude_sum([aux[0], aux[1]], units)
+        seg[0] = aux[0] + seg[2]
+        seg[1] = aux[1] + seg[3]
+
+    def cross(self, a, b):
+        return a[0]*b[1] - a[1]*b[0]
+
+    def orient(self, a, b, p):
+        a[0] -= p[0]
+        a[1] -= p[1]
+        b[0] -= p[0]
+        b[1] -= p[1]
+        ret = self.cross(a, b)
+        a[0] += p[0]
+        a[1] += p[1]
+        b[0] += p[0]
+        b[1] += p[1]
+
+        return ret
+
+    def dot(self, a, b):
+        return a[0]*b[0] + a[1]*b[1]
+
+    def inDisk(self, a, b, p):
+        a[0] -= p[0]
+        a[1] -= p[1]
+        b[0] -= p[0]
+        b[1] -= p[1]
+        ret = self.dot(a, b) <= 0
+        a[0] += p[0]
+        a[1] += p[1]
+        b[0] += p[0]
+        b[1] += p[1]
+
+        return ret
+
+
+    def seg_inter(self, a, b, c, d):
+        oa = self.orient(c, d, a)
+        ob = self.orient(c, d, b)
+        oc = self.orient(a, b, c)
+        od = self.orient(a, b, d)
+
+        if oa*ob < 0 and oc*od < 0:
+            out = [0,0]
+            out[0] = (a[0]*ob - b[0]*oa) / (ob-oa)
+            out[1] = (a[1]*ob - b[1]*oa) / (ob-oa)
+            return [True, out]
+
+        return [False, [0,0]]

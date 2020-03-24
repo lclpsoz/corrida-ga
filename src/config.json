@@ -22,7 +22,6 @@
     },
     "ai" :
     {
-        "type" : "ga",
         "population_size" : 100,
         "num_of_generations" : 300,
         "mutation_type" : "simple",

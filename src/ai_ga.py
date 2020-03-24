@@ -7,32 +7,40 @@ import numpy as np
 from copy import deepcopy
 from datetime import datetime
 
-from ai.ai import AI
-
-class AIGA(AI):
+class AIGA(object):
     def __init__(self, config, ai_info):
-        super(AIGA, self).__init__(config['ai']['population_size'])
+        self.population_size = config['ai']['population_size']
         if self.population_size%2:
             print("Population size must be even!")
             exit(0)
+        
         self.config = config
+        self.evaluated = 0
+        self.features = [None for x in range(self.population_size)]
+        self.fitness = None
+        self.population = None
+
         if 'save' in config['ai']:
             self.must_save = config['ai']['save']
         else:
             self.must_save = False
-        self.EPS = config['EPS']
-        self.gene_size = self.config['car']['number_of_visions'] + 1
+        
         # One for acc/break and the other for turns
         self.gene_amnt = 2
+        self.gene_size = self.config['car']['number_of_visions'] + 1
+        self.EPS = config['EPS']
+        
         if ai_info:
             self.set_ai_info(ai_info)
         else:
             self.population = self.random_population(self.population_size)
             self.generation = 1
+        
         self.num_generations = config['ai']['num_of_generations']
         self.verbose = config['verbose']
         self.t_gen_start = time.time()
         self.fps = config['fps']
+        
         if 'max_frames' in config['ai']:
             self.max_frames = config['ai']['max_frames']
         else:
@@ -42,6 +50,7 @@ class AIGA(AI):
             self.mutation = self.mutation_simple
         else:
             self.mutation = self.mutation_gradient
+
         self.mutation_chance = config['ai']['mutation_chance']
         self.mutation_factor = config['ai']['mutation_factor']
         self.pop_size_elitism = int(round(config['ai']["proportion_elitism"] * self.population_size))
@@ -57,6 +66,7 @@ class AIGA(AI):
                 label_last_commit = label_last_commit.decode('utf-8')
         except:
             label_last_commit = "_git-not_found"
+        
         self.identifier = \
             "ga_" + \
             self.config["track"] + \
@@ -64,6 +74,16 @@ class AIGA(AI):
             "__git-" + label_last_commit
         if self.must_save:
             self.save()
+
+    def set_evaluation(self, car_id : int, features : dict):
+        """Set features of a car with car_id based on received features."""
+        if self.features[car_id] == None:
+            self.features[car_id] = features
+            self.evaluated+=1
+
+    def population_evaluated(self):
+        """Returns if the whole population was evaluated."""
+        return self.evaluated == self.population_size
 
     def random_population(self, n):
         """Generate n random individuals."""
@@ -98,6 +118,15 @@ class AIGA(AI):
             else:
                 self.fitness.append(100*feat['perc_of_sectors'] +
                     (self.max_frames - feat['amount_frames']))
+    
+    def clamp(self, x, mini, maxi):
+        """Apply clamp to x."""
+        if x > maxi:
+            return maxi
+        elif x < mini:
+            return mini
+        return x
+    
     def mutation_simple(self, indv):
         """Apply mutation to indv in place. Work by adding a random value in the
         interval [-self.mutation_factor, self.mutation_factor] to each position
@@ -106,19 +135,8 @@ class AIGA(AI):
             for k in range(self.gene_size):
                 if random.random() < self.mutation_chance:
                     indv[j][k] += random.uniform(-self.mutation_factor, self.mutation_factor)
-                    if indv[j][k] > 1:
-                        indv[j][k] = 1
-                    elif indv[j][k] < -1:
-                        indv[j][k] = -1
-
-    def clamp(self, x, mini, maxi):
-        """Apply clamp to x."""
-        if x > maxi:
-            return maxi
-        elif x < mini:
-            return mini
-        return x
-
+                    self.clamp(indv[j][k], -1, 1)
+                    
     def mutation_gradient(self, indv):
         """Apply mutation to indv in place. There's two type of mutation in this
         function, the first is applied to speed, and it's equivalent to
