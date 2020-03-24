@@ -7,7 +7,7 @@
         "fps_info" : "TYPE_INT",
         "acum_fps_window" : "TYPE_INT",
         "verbose" : [1, 0, 2],
-        "track" : ["ellipse", "circle", "rect_rounded", "complex_1", "squared", "kart", "monza", "custom"],
+        "track" : ["ellipse", "circle", "rect_rounded", "kart", "monza"],
         "car_visions" : "TYPE_INT",
         "car_vision_len" : "TYPE_INT"
     },

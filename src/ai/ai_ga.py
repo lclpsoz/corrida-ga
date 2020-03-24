@@ -12,10 +12,10 @@ from ai.ai import AI
 class AIGA(AI):
     def __init__(self, config, ai_info):
         super(AIGA, self).__init__(config['ai']['population_size'])
-        if self.population_size%2:
+        self.config = config
+        if (((not 'train' in self.config['ai']) or self.config['ai']['train']) and self.population_size%2):
             print("Population size must be even!")
             exit(0)
-        self.config = config
         if 'save' in config['ai']:
             self.must_save = config['ai']['save']
         else:
@@ -265,34 +265,35 @@ class AIGA(AI):
             print("\tAvr fitness: %.2f" % (sum(self.fitness)/self.population_size))
             print("\tWorst fitness: %.2f" % min(self.fitness))
 
-        pop_elitism = deepcopy([x for _,_,x in sorted_by_fitness][-self.pop_size_elitism:])[::-1]
-        pop_crossover = []
-        for i in range(0, self.pop_size_crossover, 2):
-            parent_1, parent_2 = map(
-                deepcopy,
-                random.choices(self.population, self.fitness, k=2)
-            )
-            pop_crossover.extend(self.crossover(parent_1, parent_2))
-        pop_new = self.random_population(self.pop_size_new)
+        if (not 'train' in self.config['ai']) or self.config['ai']['train']:
+            pop_elitism = deepcopy([x for _,_,x in sorted_by_fitness][-self.pop_size_elitism:])[::-1]
+            pop_crossover = []
+            for i in range(0, self.pop_size_crossover, 2):
+                parent_1, parent_2 = map(
+                    deepcopy,
+                    random.choices(self.population, self.fitness, k=2)
+                )
+                pop_crossover.extend(self.crossover(parent_1, parent_2))
+            pop_new = self.random_population(self.pop_size_new)
 
-        self.fitness = [x for x,_,_ in sorted_by_fitness]
-        self.features = [x for _,x,_ in sorted_by_fitness]
-        self.population = [x for _,_,x in sorted_by_fitness]
+            self.fitness = [x for x,_,_ in sorted_by_fitness]
+            self.features = [x for _,x,_ in sorted_by_fitness]
+            self.population = [x for _,_,x in sorted_by_fitness]
 
-        if self.must_save:
-            self.save()
+            if self.must_save:
+                self.save()
 
-        if self.verbose > 1:
-            for i in range(self.population_size):
-                print(self.population[i], self.features[i], self.fitness[i])
-        if self.verbose > 0:
-            print("")
-        self.population = pop_elitism + pop_crossover + pop_new
+            if self.verbose > 1:
+                for i in range(self.population_size):
+                    print(self.population[i], self.features[i], self.fitness[i])
+            if self.verbose > 0:
+                print("")
+            self.population = pop_elitism + pop_crossover + pop_new
+            self.generation += 1
         self.fitness = None
         self.features = [None for i in range(self.population_size)]
         self.evaluated = 0
         self.t_gen_start = time.time()
-        self.generation += 1
 
 
         return True

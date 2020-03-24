@@ -59,7 +59,9 @@ options = {
     '-tv' : ['SET', 'graphics', True],
     '-notv' : ['SET', 'graphics', False],
     '-save' : ['SET', 'ai', 'save', True],
-    '-nosave' : ['SET', 'ai', 'save', False]
+    '-nosave' : ['SET', 'ai', 'save', False],
+    '-train': ['SET', 'ai', 'train', True],
+    '-notrain': ['SET', 'ai', 'train', False]
 }
 
 game_now = "GA"

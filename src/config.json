@@ -1,7 +1,7 @@
 {  
     "seed" : 2550690257394217,
     "EPS" : 0.0001,
-    "graphics" : false,
+    "graphics" : true,
     "width" : 1200,
     "height": 600,
     "fps" : 120,
@@ -23,6 +23,7 @@
     "ai" :
     {
         "type" : "ga",
+        "train": true,
         "population_size" : 100,
         "num_of_generations" : 300,
         "mutation_type" : "simple",
