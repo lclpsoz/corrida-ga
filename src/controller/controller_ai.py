@@ -19,7 +19,11 @@ class ControllerAI(Controller):
         self.view = View(config)
         self.config = config
         self.ai_info = ai_info
-        pprint(config)
+        to_print = {}
+        for x in config.keys():
+            if not x.startswith("circuit_"):
+                to_print[x] = config[x]
+        pprint(to_print)
 
     def get_car_data_str(self, car):
         """Builds a dict about the car car and returns it."""

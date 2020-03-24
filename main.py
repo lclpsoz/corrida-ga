@@ -90,6 +90,7 @@ if game_now == "GA":
 elif game_now == "GA_INFO":
     game_now = ControllerAI(config, ai_info)
 else:
+    config['graphics'] = True
     game_now = ControllerPlayer(config)
 
 game_now.run()

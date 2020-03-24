@@ -2,6 +2,7 @@ import pygame
 import math
 import time
 import ctypes
+import numpy as np
 from copy import deepcopy
 from shapely.geometry.polygon import Polygon
 from shapely.geometry import Point
@@ -149,17 +150,51 @@ class Circuit(object):
             i += 4
         return min_d
 
+    def vector_magnitude_sum(self, vector, scalar):
+        """Sum scalar value to vector magnitude."""
+        vector = np.asarray(vector)
+        x, y = vector
+        vector_magnitude = math.sqrt(x**2 + y**2)
+        if vector_magnitude > 0:
+            vector_unit = vector/vector_magnitude
+        else:
+            vector_unit = [1, 0]
+        return vector + (vector_unit*scalar)
+
+    def extend_seg(self, seg, units):
+        """Extend segment receive in the format [x1, y1, x2, y2] by
+        units in both directions. Operation done in place."""
+        aux = seg.copy()[2:]
+        aux[0] -= seg[0]
+        aux[1] -= seg[1]
+        aux = self.vector_magnitude_sum([aux[0], aux[1]], units)
+        seg[2] = aux[0] + seg[0]
+        seg[3] = aux[1] + seg[1]
+
+        aux = seg.copy()[:2]
+        aux[0] -= seg[2]
+        aux[1] -= seg[3]
+        aux = self.vector_magnitude_sum([aux[0], aux[1]], units)
+        seg[0] = aux[0] + seg[2]
+        seg[1] = aux[1] + seg[3]
+
     def get_walls_list(self):
         """Returns list of floats, each 4 positions representing a segment
         of the walls (inner and outter)."""
-        walls = []
-        for container in range(0, 2):
-            if len(self.track_points[container]) > 0:
-                last = self.track_points[container][0]
-                for x, y in self.track_points[container][1:]:
-                    walls.extend([last[0]+self.x_shift, last[1], x+self.x_shift, y])
-                    last = [x, y]
-        return walls
+        if hasattr(self, "walls_list"):
+            return self.walls_list
+        else:
+            self.walls = []
+            for container in range(0, 2):
+                if len(self.track_points[container]) > 0:
+                    last = self.track_points[container][0]
+                    for x, y in self.track_points[container][1:]:
+                        seg = [last[0]+self.x_shift, last[1],
+                                    x+self.x_shift, y]
+                        self.extend_seg(seg, 3)
+                        self.walls.extend(seg)
+                        last = [x, y]
+        return self.walls
 
     def draw(self):
         """Returns the pygame.Surface with the track drawed"""
