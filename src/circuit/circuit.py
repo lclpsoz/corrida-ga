@@ -97,6 +97,28 @@ class Circuit(object):
                         last = [x, y]
         return self.walls
 
+    def update_car_sector(self, car_id, car):
+        """Updates the sector of the car."""
+        now = self.car_current_sector[car_id]
+        segs = []
+        pts = car.get_points()
+        last_x, last_y = pts[-1]
+        for x, y in pts:
+            segs.append([[last_x, last_y], [x, y]])
+            last_x, last_y = x, y
+        nxt_sector = True
+        while nxt_sector and now < self.num_of_sectors:
+            nxt_sector = False
+            for s1, s2 in segs:
+                if self.seg_inter(self.sectors[now][0], self.sectors[now][1], s1, s2)[0]:
+                    nxt_sector = True
+                    break
+            if nxt_sector:
+                self.car_sectors[car_id][now] = 1
+                now += 1
+
+        self.car_current_sector[car_id] = now
+
     def collision(self, shape):
         """Returns the type of collision of the shape and the circuit.
         Can be NONE or WALL. Also accept list of points"""
@@ -206,28 +228,6 @@ class Circuit(object):
         n_segs_1 //= 4
         n_segs_2 //= 4
         return collisions_wrapper.col_dist_circuit(segs_1, n_segs_1, segs_2, n_segs_2)
-
-    def update_car_sector(self, car_id, car):
-        """Updates the sector of the car."""
-        now = self.car_current_sector[car_id]
-        segs = []
-        pts = car.get_points()
-        last_x, last_y = pts[-1]
-        for x, y in pts:
-            segs.append([[last_x, last_y], [x, y]])
-            last_x, last_y = x, y
-        nxt_sector = True
-        while nxt_sector and now < self.num_of_sectors:
-            nxt_sector = False
-            for s1, s2 in segs:
-                if self.seg_inter(self.sectors[now][0], self.sectors[now][1], s1, s2)[0]:
-                    nxt_sector = True
-                    break
-            if nxt_sector:
-                self.car_sectors[car_id][now] = 1
-                now += 1
-
-        self.car_current_sector[car_id] = now
 
     def get_current_car_time(self, car_id):
         """Returns current time by car with car_id."""

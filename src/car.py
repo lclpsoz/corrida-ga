@@ -159,9 +159,9 @@ class Car():
         elif key[pygame.K_DOWN]:
             self.movement[0] = -self.mov_norm
         if key[pygame.K_LEFT]:
-            self.movement[2] = self.mov_norm
+            self.movement[1] = self.mov_norm
         elif key[pygame.K_RIGHT]:
-            self.movement[2] = -self.mov_norm
+            self.movement[1] = -self.mov_norm
         
         return self.movement
 

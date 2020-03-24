@@ -50,9 +50,9 @@ class Interface():
         )
         x += x_delta
         y += y_delta
-        self.btn_ai_manual = pygame_gui.elements.UIButton(
+        self.btn_ai_load = pygame_gui.elements.UIButton(
             relative_rect=pygame.Rect((x, y), elem_size),
-            text='I.A. Arbitrária',
+            text='Assistir melhores AGs',
             manager=self.manager
         )
         x += x_delta
@@ -170,6 +170,12 @@ class Interface():
             except:
                 print(text, "is a invalid input in", field)
 
+    def set_best_ai_info(self):
+        """Read best_ai_info from file, if can't, try to load locally."""
+        try:
+            self.best_ai_info = json.load(open("src/best_ai_info.json", 'r'))
+        except:
+            self.best_ai_info = best_ai_info
 
     def set_interface_config(self):
         """Read all fields in the interface and set them in the config dict."""
@@ -192,6 +198,14 @@ class Interface():
                             ControllerPlayer(self.config).run()
                         elif event.ui_element == self.btn_ga:
                             ControllerAI(self.config).run()
+                        elif event.ui_element == self.btn_ai_load:
+                            self.set_best_ai_info()
+                            self.config['ai']['fps'] = 60
+                            self.config['ai']['fps_info'] = 60
+                            self.config['ai']['population_size'] = 1
+                            self.config['ai']['save'] = False
+                            self.config['ai']['train'] = False
+                            ControllerAI(self.config, self.best_ai_info[self.config['track']]).run()
                         elif event.ui_element == self.btn_exit:
                             running = False
                     elif event.user_type == pygame_gui.UI_TEXT_ENTRY_FINISHED:
